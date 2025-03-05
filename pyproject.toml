@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "hf-daily-papers-analytics"
+version = "0.1.0"
+description = ""
+authors = ["Justin Zhao <justinxzhao@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+requests = "^2.32.3"
+beautifulsoup4 = "^4.13.3"
+lxml = "^5.3.1"
+tqdm = "^4.67.1"
+aiohttp = "^3.11.13"
+pytest = "^8.3.4"
+pandas = "^2.2.3"
+datasets = "^3.3.2"
+python-dotenv = "^1.0.1"
+matplotlib = "^3.10.1"
+jupyterlab = "^4.3.5"
+seaborn = "^0.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
