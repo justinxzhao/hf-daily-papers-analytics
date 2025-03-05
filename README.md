@@ -6,10 +6,18 @@ This project scrapes papers from the Hugging Face website, merges them with prev
 
 A cron GHA re-scrapes and publishes new data to [`justinxzhao/hf_daily_papers`](https://huggingface.co/datasets/justinxzhao/hf_daily_papers) every day at 6:30 PST.
 
+## Motivation
+
+Hugging Face daily papers has become a vibrant community hub for sharing machine learning research. HF Daily Papers Analytics was created to:
+
+- Centralize daily papers into a searchable dataset.
+- Facilitate analysis by enabling trend analysis and historical comparisons.
+- Ensure fresh data every day through a streamlined CI/CD pipeline.
+
 ## Overview
 
 - **Scraping**: Gathers papers published daily on Hugging Face.
-- **Merging**: (optional) If scraping a partial set of dates, we combines new data with the existing dataset, prefering new data. Generally, the upvotes for a new paper stabilizes around 1-2 weeks after it was posted.
+- **Merging**: (optional) If scraping a partial set of dates, we combines new data with the existing dataset, prefering new data. Generally, the upvotes and other metadata for a new paper stabilizes around 1-2 weeks after it was posted.
 - **Publishing**: Uploads the merged dataset to Hugging Face Datasets under [`justinxzhao/hf_daily_papers`](https://huggingface.co/datasets/justinxzhao/hf_daily_papers).
 
 ## Repository Structure
@@ -46,11 +54,11 @@ HF_Daily_Papers_Analytics/
 
 3. **Set Hugging Face Token**  
 
-   - Create a `.env` file at the project root:
+   Create a `.env` file at the project root:
 
-     ```bash
-     HUGGINGFACE_HUB_TOKEN=<YOUR_TOKEN_HERE>
-     ```
+   ```bash
+   HUGGINGFACE_HUB_TOKEN=<YOUR_TOKEN_HERE>
+   ```
 
 4. **Run the Scraper Locally**  
 
@@ -78,4 +86,4 @@ HF_Daily_Papers_Analytics/
 
 ## Support / Contact
 
-- For issues and PRs, please open a [GitHub Issue](https://github.com/justinxzhao/hf-daily-papers-analytics/issues).  
+For issues and feature requests, please open a [GitHub Issue](https://github.com/justinxzhao/hf-daily-papers-analytics/issues).  
