@@ -103,7 +103,7 @@ async def extract_paper_details_with_metadata(
 async def run_scraper(
     start_date: str,
     end_date: str,
-    output_file: str,
+    output_file: str | None,
     retries: int = 3,
     cooldown: int = 5,
 ) -> pd.DataFrame:
@@ -129,6 +129,12 @@ async def run_scraper(
 
         # Create a pandas dataframe from the extracted data
         df = pd.DataFrame(all_paper_details)
-        df.to_json(output_file, orient="records", lines=True)
-        print(f"Data saved to {output_file}")
+        if output_file:
+            if output_file.endswith(".json"):
+                df.to_json(output_file, orient="records")
+            elif output_file.endswith(".jsonl"):
+                df.to_json(output_file, orient="records", lines=True)
+            else:
+                print("Output file must be a .json or .jsonl file. Data not saved.")
+            print(f"Data saved to {output_file}")
         return df
