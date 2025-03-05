@@ -51,8 +51,7 @@ def upload_to_hf(dataset, dataset_name, token):
 async def main(args):
     dataset_name = "justinxzhao/hf_daily_papers"
     hf_token = os.environ["HUGGINGFACE_HUB_TOKEN"]
-    end_date = datetime.today().strftime("%Y-%m-%d")
-
+    end_date = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
     start_date = (datetime.today() - timedelta(days=args.days)).strftime("%Y-%m-%d")
 
     print(f"Scraping papers from {start_date} to {end_date}...")
