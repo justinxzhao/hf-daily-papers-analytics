@@ -51,15 +51,18 @@ async def main(args):
         start_date, end_date, output_file=None, retries=3, cooldown=2
     )
 
-    print("Downloading existing dataset from Hugging Face...")
-    try:
-        existing_df = download_hf_dataset(dataset_name)
-    except Exception as e:
-        print(f"Could not fetch existing dataset: {e}")
-        existing_df = None
+    if not args.full_scrape:
+        print("Downloading existing dataset from Hugging Face...")
+        try:
+            existing_df = download_hf_dataset(dataset_name)
+        except Exception as e:
+            print(f"Could not fetch existing dataset: {e}")
+            existing_df = None
 
-    print("Merging datasets...")
-    merged_df = merge_datasets(existing_df, new_df)
+        print("Merging datasets...")
+        merged_df = merge_datasets(existing_df, new_df)
+    else:
+        merged_df = new_df
 
     print("Uploading merged dataset to Hugging Face...")
     upload_to_hf(merged_df, dataset_name, hf_token)
