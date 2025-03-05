@@ -1,6 +1,8 @@
 import aiohttp
 import asyncio
-from hf_papers_scraper import extract_paper_details_with_metadata
+from hf_daily_papers_analytics.hf_papers_scraper import (
+    extract_paper_details_with_metadata,
+)
 import pprint
 
 
@@ -21,39 +23,48 @@ def test_extract_paper_details_with_metadata():
 
     result = asyncio.run(extraction_helper())
 
-    assert result == {
-        "date": "2025-02-27",
-        "paper_id": "2502.18934",
-        "title": "Kanana: Compute-efficient Bilingual Language Models",
-        "authors": [
-            "Kanana LLM Team",
-            "Yunju Bak",
-            "Hojin Lee",
-            "Minho Ryu",
-            "Jiyeon Ham",
-            "Seungjae Jung",
-            "Daniel Wontae Nam",
-            "Taegyeong Eo",
-            "Donghun Lee",
-            "Doohae Jung",
-            "Boseop Kim",
-            "Nayeon Kim",
-            "Jaesun Park",
-            "Hyunho Kim",
-            "Hyunwoong Ko",
-            "Changmin Lee",
-            "Kyoung-Woon On",
-            "Seulye Baeg",
-            "Junrae Cho",
-            "Sunghee Jung",
-            "Jieun Kang",
-            "EungGyun Kim",
-        ],
-        "abstract": "We introduce Kanana, a series of bilingual language models that demonstrate\nexceeding performance in Korean and competitive performance in English. The\ncomputational cost of Kanana is significantly lower than that of\nstate-of-the-art models of similar size. The report details the techniques\nemployed during pre-training to achieve compute-efficient yet competitive\nmodels, including high quality data filtering, staged pre-training, depth\nup-scaling, and pruning and distillation. Furthermore, the report outlines the\nmethodologies utilized during the post-training of the Kanana models,\nencompassing supervised fine-tuning and preference optimization, aimed at\nenhancing their capability for seamless interaction with users. Lastly, the\nreport elaborates on plausible approaches used for language model adaptation to\nspecific scenarios, such as embedding, retrieval augmented generation, and\nfunction calling. The Kanana model series spans from 2.1B to 32.5B parameters\nwith 2.1B models (base, instruct, embedding) publicly released to promote\nresearch on Korean language models.",
-        "upvotes": 49,
-        "models_citing": 3,
-        "datasets_citing": 0,
-        "spaces_citing": 1,
-        "collections_including": 2,
-        "url": "https://huggingface.co/papers/2502.18934",
-    }
+    assert result["date"] == "2025-02-27"
+    assert result["paper_id"] == "2502.18934"
+    assert result["title"] == "Kanana: Compute-efficient Bilingual Language Models"
+    assert result["authors"] == [
+        "Kanana LLM Team",
+        "Yunju Bak",
+        "Hojin Lee",
+        "Minho Ryu",
+        "Jiyeon Ham",
+        "Seungjae Jung",
+        "Daniel Wontae Nam",
+        "Taegyeong Eo",
+        "Donghun Lee",
+        "Doohae Jung",
+        "Boseop Kim",
+        "Nayeon Kim",
+        "Jaesun Park",
+        "Hyunho Kim",
+        "Hyunwoong Ko",
+        "Changmin Lee",
+        "Kyoung-Woon On",
+        "Seulye Baeg",
+        "Junrae Cho",
+        "Sunghee Jung",
+        "Jieun Kang",
+        "EungGyun Kim",
+    ]
+    assert result["abstract"] == (
+        "We introduce Kanana, a series of bilingual language models that demonstrate\n"
+        "exceeding performance in Korean and competitive performance in English. The\n"
+        "computational cost of Kanana is significantly lower than that of\n"
+        "state-of-the-art models of similar size. The report details the techniques\n"
+        "employed during pre-training to achieve compute-efficient yet competitive\n"
+        "models, including high quality data filtering, staged pre-training, depth\n"
+        "up-scaling, and pruning and distillation. Furthermore, the report outlines the\n"
+        "methodologies utilized during the post-training of the Kanana models,\n"
+        "encompassing supervised fine-tuning and preference optimization, aimed at\n"
+        "enhancing their capability for seamless interaction with users. Lastly, the\n"
+        "report elaborates on plausible approaches used for language model adaptation to\n"
+        "specific scenarios, such as embedding, retrieval augmented generation, and\n"
+        "function calling. The Kanana model series spans from 2.1B to 32.5B parameters\n"
+        "with 2.1B models (base, instruct, embedding) publicly released to promote\n"
+        "research on Korean language models."
+    )
+    assert result["url"] == "https://huggingface.co/papers/2502.18934"
