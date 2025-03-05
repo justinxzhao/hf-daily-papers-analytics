@@ -15,10 +15,7 @@ from bs4 import BeautifulSoup
 from datasets import Dataset, DatasetDict, load_dataset
 from tqdm.asyncio import tqdm_asyncio
 
-# Add the parent directory (project root) to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from utils.hf_papers_scraper import run_scraper
+from hf_daily_papers_analytics.hf_papers_scraper import run_scraper
 
 
 dotenv.load_dotenv()
