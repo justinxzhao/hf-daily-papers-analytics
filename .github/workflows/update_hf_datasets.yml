@@ -1,0 +1,32 @@
+name: Update Hugging Face Dataset
+
+on:
+  schedule:
+    - cron: "30 2 * * *"  # Runs daily at 2:30 AM UTC (6:30 PM PST)
+  workflow_dispatch:  # Allows manual execution from GitHub UI
+
+jobs:
+  update-dataset:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Dependencies
+        run: poetry install --no-root
+
+      - name: Run Update Script
+        env:
+          HUGGINGFACE_HUB_TOKEN: ${{ secrets.HUGGINGFACE_HUB_TOKEN }}
+        run: poetry run python scripts/update_hf_datasets.py
