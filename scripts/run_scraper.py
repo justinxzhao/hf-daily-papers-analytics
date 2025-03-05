@@ -40,7 +40,9 @@ if __name__ == "__main__":
         "--start_date", type=str, help="Start date in YYYY-MM-DD format"
     )
     parser.add_argument("--end_date", type=str, help="End date in YYYY-MM-DD format")
-    parser.add_argument("--output_file", type=str, help="Output file name")
+    parser.add_argument(
+        "--output_file", type=str, default=None, help="Output file name"
+    )
     parser.add_argument("--retries", type=int, default=3, help="Number of retries")
     parser.add_argument(
         "--cooldown", type=int, default=2, help="Cooldown time in seconds"

@@ -38,8 +38,13 @@ def upload_to_hf(dataset, dataset_name, token):
 async def main(args):
     dataset_name = "justinxzhao/hf_daily_papers"
     hf_token = os.environ["HUGGINGFACE_HUB_TOKEN"]
-    end_date = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
-    start_date = (datetime.today() - timedelta(days=args.days)).strftime("%Y-%m-%d")
+
+    if not args.full_scrape:
+        end_date = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+        start_date = (datetime.today() - timedelta(days=args.days)).strftime("%Y-%m-%d")
+    else:
+        end_date = datetime.today().strftime("%Y-%m-%d")
+        start_date = "2023-05-04"
 
     print(f"Scraping papers from {start_date} to {end_date}...")
     new_df = await run_scraper(
@@ -69,6 +74,12 @@ if __name__ == "__main__":
         type=int,
         default=30,
         help="Number of days from today to scrape papers for.",
+    )
+    parser.add_argument(
+        "--full_scrape",
+        action="store_true",
+        help="Scrape papers from the beginning of time.",
+        default=False,
     )
 
     args = parser.parse_args()
