@@ -54,10 +54,11 @@ async def main(args):
     end_date = datetime.today().strftime("%Y-%m-%d")
 
     start_date = (datetime.today() - timedelta(days=args.days)).strftime("%Y-%m-%d")
-    output_file = f"extractions/hf_papers_{start_date}_to_{end_date}.jsonl"
 
     print(f"Scraping papers from {start_date} to {end_date}...")
-    new_df = await run_scraper(start_date, end_date, output_file, retries=3, cooldown=2)
+    new_df = await run_scraper(
+        start_date, end_date, output_file=None, retries=3, cooldown=2
+    )
 
     print("Downloading existing dataset from Hugging Face...")
     try:
@@ -68,8 +69,6 @@ async def main(args):
 
     print("Merging datasets...")
     merged_df = merge_datasets(existing_df, new_df)
-
-    breakpoint()
 
     print("Uploading merged dataset to Hugging Face...")
     upload_to_hf(merged_df, dataset_name, hf_token)
