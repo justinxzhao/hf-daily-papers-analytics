@@ -13,7 +13,6 @@ beautifulsoup4 = "^4.13.3"
 lxml = "^5.3.1"
 tqdm = "^4.67.1"
 aiohttp = "^3.11.13"
-pytest = "^8.3.4"
 pandas = "^2.2.3"
 datasets = "^3.3.2"
 python-dotenv = "^1.0.1"
@@ -21,6 +20,8 @@ matplotlib = "^3.10.1"
 jupyterlab = "^4.3.5"
 seaborn = "^0.13.2"
 
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.4"
 
 [build-system]
 requires = ["poetry-core"]

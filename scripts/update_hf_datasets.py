@@ -16,6 +16,7 @@ from datasets import Dataset, DatasetDict, load_dataset
 from tqdm.asyncio import tqdm_asyncio
 
 from hf_daily_papers_analytics.hf_papers_scraper import run_scraper
+from hf_daily_papers_analytics.utils import merge_datasets
 
 
 dotenv.load_dotenv()
@@ -26,20 +27,6 @@ def download_hf_dataset(dataset_name):
     dataset = load_dataset(dataset_name)
     df = pd.DataFrame(dataset["train"])
     return df
-
-
-# Function to merge datasets, keeping the latest scraper data
-def merge_datasets(existing_df, new_df):
-    if existing_df is not None and not existing_df.empty:
-        combined_df = pd.concat([existing_df, new_df], ignore_index=True)
-        combined_df = (
-            combined_df.sort_values(by="date", ascending=False)
-            .drop_duplicates(subset=["date", "paper_id"], keep="first")
-            .reset_index(drop=True)
-        )
-    else:
-        combined_df = new_df
-    return combined_df
 
 
 # Function to upload dataset back to Hugging Face
