@@ -48,7 +48,7 @@ def get_paper_data(paper, soup):
         if soup.find_all("span", class_="author")
         else []
     )
-    abstract = soup.find("p", class_="text-gray-700 dark:text-gray-400").text.strip()
+    abstract = soup.find("div", class_="flex flex-col gap-y-2.5").text.strip()
 
     upvotes = soup.find("div", class_="font-semibold text-orange-500").text
     if upvotes == "-":
@@ -94,23 +94,29 @@ async def extract_paper_details_with_metadata(
                 return paper_data
             except Exception as e:
                 print(f"Error processing {paper['url']}: {e}")
-                breakpoint()
         attempt += 1
         await asyncio.sleep(cooldown)
 
 
-# Main function to run the scraper with asyncio and a progress bar
 async def run_scraper(
     start_date: str,
     end_date: str,
     output_file: str | None,
     retries: int = 3,
     cooldown: int = 5,
+    max_requests_per_second: int = 100,
 ) -> pd.DataFrame:
     urls = generate_date_urls(start_date, end_date)
+    semaphore = asyncio.Semaphore(max_requests_per_second)
+
     async with aiohttp.ClientSession() as session:
+
+        async def limited_extract_paper_links(url, date):
+            async with semaphore:
+                return await extract_paper_links(url, date, session)
+
         tasks = [
-            extract_paper_links(url, date, session)
+            limited_extract_paper_links(url, date)
             for date, url in zip([u.split("=")[-1] for u in urls], urls)
         ]
         all_paper_links = await tqdm_asyncio.gather(
@@ -118,12 +124,13 @@ async def run_scraper(
         )
         all_paper_links = [link for sublist in all_paper_links for link in sublist]
 
-        tasks = [
-            extract_paper_details_with_metadata(
-                paper, session, retries=retries, cooldown=cooldown
-            )
-            for paper in all_paper_links
-        ]
+        async def limited_extract_paper_details(paper):
+            async with semaphore:
+                return await extract_paper_details_with_metadata(
+                    paper, session, retries=retries, cooldown=cooldown
+                )
+
+        tasks = [limited_extract_paper_details(paper) for paper in all_paper_links]
         all_paper_details = await tqdm_asyncio.gather(*tasks, desc="Scraping Papers")
         all_paper_details = [detail for detail in all_paper_details if detail]
 

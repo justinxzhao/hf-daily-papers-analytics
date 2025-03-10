@@ -29,5 +29,4 @@ jobs:
       - name: Run Update Script
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HUGGINGFACE_HUB_TOKEN }}
-        # run: poetry run python scripts/update_hf_datasets.py # Most recent 30 days.
-        run: poetry run python scripts/update_hf_datasets.py --full_scrape
+        run: poetry run python scripts/update_hf_datasets.py --days 30 --upload

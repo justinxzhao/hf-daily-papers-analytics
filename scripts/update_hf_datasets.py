@@ -64,10 +64,12 @@ async def main(args):
     else:
         merged_df = new_df
 
-    print("Uploading merged dataset to Hugging Face...")
-    upload_to_hf(merged_df, dataset_name, hf_token)
+    if args.upload:
+        print("Uploading merged dataset to Hugging Face...")
+        upload_to_hf(merged_df, dataset_name, hf_token)
+        print("Dataset successfully updated!")
 
-    print("Dataset successfully updated!")
+    return merged_df
 
 
 if __name__ == "__main__":
@@ -82,6 +84,12 @@ if __name__ == "__main__":
         "--full_scrape",
         action="store_true",
         help="Scrape papers from the beginning of time.",
+        default=False,
+    )
+    parser.add_argument(
+        "--upload",
+        action="store_true",
+        help="Upload to HF.",
         default=False,
     )
 
