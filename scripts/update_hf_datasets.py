@@ -1,4 +1,8 @@
-"""Script to scrape daily papers from Hugging Face and update the dataset on Hugging Face Hub."""
+"""Script to scrape daily papers from Hugging Face and update the dataset on Hugging Face Hub.
+
+For a full scrape:
+python scripts/update_hf_datasets.py --full_scrape --upload
+"""
 
 import argparse
 import asyncio
