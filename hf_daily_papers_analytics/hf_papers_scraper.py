@@ -51,6 +51,8 @@ def get_paper_data(paper, soup):
     )
     abstract = soup.find("div", class_="flex flex-col gap-y-2.5").text.strip()
 
+    submitted_by = soup.find("span", class_="contents").text.strip()
+
     upvotes = soup.find("div", class_="font-semibold text-orange-500").text
     if upvotes == "-":
         upvotes = 0
@@ -66,6 +68,7 @@ def get_paper_data(paper, soup):
         "date": paper["date"],
         "paper_id": paper_id,
         "title": title,
+        "submitted_by": submitted_by,
         "authors": authors,
         "abstract": abstract,
         "upvotes": upvotes,
