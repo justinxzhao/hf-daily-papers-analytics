@@ -68,3 +68,19 @@ def test_extract_paper_details_with_metadata():
         "research on Korean language models."
     )
     assert result["url"] == "https://huggingface.co/papers/2502.18934"
+    assert result["submitted_by"] == "bzantium"
+
+    assert list(result.keys()) == [
+        "date",
+        "paper_id",
+        "title",
+        "submitted_by",
+        "authors",
+        "abstract",
+        "upvotes",
+        "models_citing",
+        "datasets_citing",
+        "spaces_citing",
+        "collections_including",
+        "url",
+    ]
