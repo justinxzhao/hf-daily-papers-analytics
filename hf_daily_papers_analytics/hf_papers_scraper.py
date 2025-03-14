@@ -33,7 +33,8 @@ async def extract_paper_links(date_url: str, date: str, session: ClientSession) 
                 [
                     f"https://huggingface.co{a['href']}".replace("#community", "")
                     for a in soup.find_all("a", href=True)
-                    if a["href"].startswith("/papers/")
+                    # Skip the links that have /date/ in the URL.
+                    if a["href"].startswith("/papers/") and "/date/" not in a["href"]
                 ]
             )
         )
