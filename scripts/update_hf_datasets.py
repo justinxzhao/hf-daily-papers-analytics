@@ -2,6 +2,9 @@
 
 For a full scrape:
 python scripts/update_hf_datasets.py --full_scrape --upload
+
+Test scrape:
+python scripts/update_hf_datasets.py --days 7
 """
 
 import argparse
@@ -59,12 +62,10 @@ async def main(args):
         print("Downloading existing dataset from Hugging Face...")
         try:
             existing_df = download_hf_dataset(dataset_name)
+            print("Merging datasets...")
+            merged_df = merge_datasets(existing_df, new_df)
         except Exception as e:
-            print(f"Could not fetch existing dataset: {e}")
-            existing_df = None
-
-        print("Merging datasets...")
-        merged_df = merge_datasets(existing_df, new_df)
+            raise ValueError(f"Could not fetch existing dataset: {e}")
     else:
         merged_df = new_df
 
