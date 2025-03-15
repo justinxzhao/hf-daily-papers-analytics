@@ -38,7 +38,32 @@ async def extract_paper_links(date_url: str, date: str, session: ClientSession) 
                 ]
             )
         )
-        return [{"date": date, "url": link} for link in paper_links]
+        daily_paper_links = list(
+            set(
+                [
+                    f"https://huggingface.co{a['href']}".replace("#community", "")
+                    for a in soup.find_all("a", href=True)
+                    # Skip the links that have /date/ in the URL.
+                    if "/date/" in a["href"]
+                ]
+            )
+        )
+        return {
+            "papers": [{"date": date, "url": link} for link in paper_links],
+            "daily_paper_links": daily_paper_links,
+        }
+
+
+def convert_published_on_to_date(published_on: str) -> str:
+    try:
+        # Try to parse the date with the current year
+        date_obj = datetime.strptime(
+            f"{published_on} {datetime.now().year}", "%b %d %Y"
+        )
+    except ValueError:
+        # If parsing fails, assume the year is included in the string
+        date_obj = datetime.strptime(published_on, "%b %d, %Y")
+    return date_obj.strftime("%Y-%m-%d")
 
 
 def get_paper_data(paper, soup):
@@ -52,6 +77,14 @@ def get_paper_data(paper, soup):
     abstract = soup.find("div", class_="flex flex-col gap-y-2.5").text.strip()
 
     submitted_by = soup.find("span", class_="contents").text.strip()
+
+    published_on = (
+        soup.find("div", string=lambda text: text and "Published on" in text)
+        .text.strip()
+        .replace("Published on ", "")
+    )
+
+    published_on = convert_published_on_to_date(published_on)
 
     upvotes = soup.find("div", class_="font-semibold text-orange-500").text
     if upvotes == "-":
@@ -69,6 +102,7 @@ def get_paper_data(paper, soup):
         "paper_id": paper_id,
         "title": title,
         "submitted_by": submitted_by,
+        "published_on": published_on,
         "authors": authors,
         "abstract": abstract,
         "upvotes": upvotes,
@@ -102,6 +136,17 @@ async def extract_paper_details_with_metadata(
         await asyncio.sleep(cooldown)
 
 
+def get_valid_daily_paper_dates(daily_paper_links):
+    """Returns a set of valid daily paper dates from the list of daily paper links."""
+    return set(
+        [
+            link.split("/")[-1]
+            for link in daily_paper_links
+            if link.split("/")[-1] != "date"
+        ]
+    )
+
+
 async def run_scraper(
     start_date: str,
     end_date: str,
@@ -123,10 +168,37 @@ async def run_scraper(
             limited_extract_paper_links(url, date)
             for date, url in zip([u.split("=")[-1] for u in urls], urls)
         ]
-        all_paper_links = await tqdm_asyncio.gather(
+        all_relevant_page_links = await tqdm_asyncio.gather(
             *tasks, desc="Extracting Paper Links"
         )
-        all_paper_links = [link for sublist in all_paper_links for link in sublist]
+        all_paper_links = [
+            link
+            for subresult in all_relevant_page_links
+            for link in subresult["papers"]
+        ]
+
+        all_daily_paper_links = [
+            link
+            for subresult in all_relevant_page_links
+            for link in subresult["daily_paper_links"]
+        ]
+
+        all_valid_daily_paper_dates = get_valid_daily_paper_dates(all_daily_paper_links)
+
+        # Filter out all papers that are not in the valid daily paper dates.
+        # This can happen for dates where there is no published daily paper list (e.g. weekends).
+        # These are still crawled because of redirects.
+        len_before_filter = len(all_paper_links)
+
+        all_paper_links = [
+            paper
+            for paper in all_paper_links
+            if paper["date"] in all_valid_daily_paper_dates
+        ]
+        len_after_filter = len(all_paper_links)
+        print(
+            f"Filtered out {len_before_filter - len_after_filter} papers not in valid daily paper dates (due to weekends, etc.)"
+        )
 
         async def limited_extract_paper_details(paper):
             async with semaphore:
