@@ -1,7 +1,11 @@
 import pytest
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
-from hf_daily_papers_analytics.hf_papers_scraper import extract_paper_links
+from hf_daily_papers_analytics.hf_papers_scraper import (
+    extract_paper_links,
+    get_valid_daily_paper_dates,
+    convert_published_on_to_date,
+)
 
 
 @pytest.mark.asyncio
@@ -12,7 +16,7 @@ async def test_extract_paper_links():
     async with ClientSession() as session:
         result = await extract_paper_links(date_url, date, session)
 
-        paper_urls = set([paper["url"] for paper in result])
+        paper_urls = set([paper["url"] for paper in result["papers"]])
 
         expected_paper_urls = {
             "https://huggingface.co/papers/2502.14856",
@@ -43,3 +47,32 @@ async def test_extract_paper_links():
             "https://huggingface.co/papers/2503.03651",
         }
         assert paper_urls == expected_paper_urls
+
+        assert set(result["daily_paper_links"]) == {
+            "https://huggingface.co/papers/date/2025-03-06",
+            "https://huggingface.co/papers/date/2025-03-04",
+        }
+
+
+def test_get_valid_daily_paper_dates():
+    valid_dates = get_valid_daily_paper_dates(
+        [
+            "https://huggingface.co/papers/date/2025-03-06",
+            "https://huggingface.co/papers/date/2025-03-04",
+        ]
+    )
+
+    assert set(valid_dates) == set(
+        [
+            "2025-03-06",
+            "2025-03-04",
+        ]
+    )
+
+
+def test_convert_published_on_to_date():
+    convert_published_on_to_date("Mar 20") == "2025-03-20"
+    convert_published_on_to_date("Mar 20, 2025") == "2025-03-20"
+    convert_published_on_to_date("Nov 4, 2024") == "2024-11-04"
+    convert_published_on_to_date("Nov 4, 2024") == "2024-11-04"
+    convert_published_on_to_date("Jul 11, 2024") == "2024-07-11"
