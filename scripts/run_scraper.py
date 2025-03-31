@@ -14,12 +14,17 @@ python scripts/hf_papers_scraper.py \
     --retries 3 \
     --cooldown 2
 
-python scripts/hf_papers_scraper.py \
-    --start_date 2025-02-28 \
-    --end_date 2025-03-03 \
-    --output_file extractions/hf_papers_2025_02_28_to_2025_03_03.jsonl \
+python scripts/run_scraper.py \
+    --start_date 2025-03-28 \
+    --end_date 2025-03-28 \
+    --output_file extractions/hf_papers_2025_03_28.jsonl \
     --retries 3 \
     --cooldown 2
+
+python scripts/run_scraper.py \
+    --start_date 2025-03-28 \
+    --end_date 2025-03-28 \
+    --output_file extractions/hf_papers_2025_03_28.jsonl
 """
 
 import argparse
@@ -30,7 +35,7 @@ import sys
 # Add the parent directory (project root) to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from utils.hf_papers_scraper import run_scraper
+from hf_daily_papers_analytics.hf_papers_scraper import run_scraper
 
 
 # Example usage
