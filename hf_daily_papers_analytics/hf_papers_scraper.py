@@ -23,10 +23,16 @@ def generate_date_urls(start_date: str, end_date: str) -> list:
 
 
 # Function to extract paper links from a given daily papers page
-async def extract_paper_links(date_url: str, date: str, session: ClientSession) -> list:
-    async with session.get(date_url) as response:
-        if response.status != 200:
-            return []
+async def extract_paper_links(date_url: str, date: str, session: ClientSession) -> dict:
+    valid_dates = []
+    async with session.get(date_url, allow_redirects=False) as response:
+        if response.status != 200 and response.status != 302:
+            return {"papers": [], "valid_dates": []}
+
+        if response.status != 302:
+            valid_dates.append(date)
+
+        # Non-redirect.
         soup = BeautifulSoup(await response.text(), "html.parser")
         paper_links = list(
             set(
@@ -38,19 +44,20 @@ async def extract_paper_links(date_url: str, date: str, session: ClientSession) 
                 ]
             )
         )
-        daily_paper_links = list(
-            set(
-                [
-                    f"https://huggingface.co{a['href']}".replace("#community", "")
-                    for a in soup.find_all("a", href=True)
-                    # Skip the links that have /date/ in the URL.
-                    if "/date/" in a["href"]
-                ]
-            )
-        )
+        # daily_paper_links = list(
+        #     set(
+        #         [
+        #             f"https://huggingface.co{a['href']}".replace("#community", "")
+        #             for a in soup.find_all("a", href=True)
+        #             # Skip the links that have /date/ in the URL.
+        #             if "/date/" in a["href"]
+        #         ]
+        #     )
+        # )
         return {
             "papers": [{"date": date, "url": link} for link in paper_links],
-            "daily_paper_links": daily_paper_links,
+            # "daily_paper_links": daily_paper_links,
+            "valid_dates": valid_dates,
         }
 
 
@@ -136,17 +143,6 @@ async def extract_paper_details_with_metadata(
         await asyncio.sleep(cooldown)
 
 
-def get_valid_daily_paper_dates(daily_paper_links):
-    """Returns a set of valid daily paper dates from the list of daily paper links."""
-    return set(
-        [
-            link.split("/")[-1]
-            for link in daily_paper_links
-            if link.split("/")[-1] != "date"
-        ]
-    )
-
-
 async def run_scraper(
     start_date: str,
     end_date: str,
@@ -177,29 +173,6 @@ async def run_scraper(
             for link in subresult["papers"]
         ]
 
-        all_daily_paper_links = [
-            link
-            for subresult in all_relevant_page_links
-            for link in subresult["daily_paper_links"]
-        ]
-
-        all_valid_daily_paper_dates = get_valid_daily_paper_dates(all_daily_paper_links)
-
-        # Filter out all papers that are not in the valid daily paper dates.
-        # This can happen for dates where there is no published daily paper list (e.g. weekends).
-        # These are still crawled because of redirects.
-        len_before_filter = len(all_paper_links)
-
-        all_paper_links = [
-            paper
-            for paper in all_paper_links
-            if paper["date"] in all_valid_daily_paper_dates
-        ]
-        len_after_filter = len(all_paper_links)
-        print(
-            f"Filtered out {len_before_filter - len_after_filter} papers not in valid daily paper dates (due to weekends, etc.)"
-        )
-
         async def limited_extract_paper_details(paper):
             async with semaphore:
                 return await extract_paper_details_with_metadata(
@@ -209,6 +182,8 @@ async def run_scraper(
         tasks = [limited_extract_paper_details(paper) for paper in all_paper_links]
         all_paper_details = await tqdm_asyncio.gather(*tasks, desc="Scraping Papers")
         all_paper_details = [detail for detail in all_paper_details if detail]
+
+        print(f"Finished scraping {len(all_paper_details)} papers.")
 
         # Create a pandas dataframe from the extracted data
         df = pd.DataFrame(all_paper_details)
