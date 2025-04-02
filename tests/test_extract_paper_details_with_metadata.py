@@ -75,6 +75,7 @@ def test_extract_paper_details_with_metadata():
         "paper_id",
         "title",
         "submitted_by",
+        "published_on",
         "authors",
         "abstract",
         "upvotes",
@@ -83,4 +84,5 @@ def test_extract_paper_details_with_metadata():
         "spaces_citing",
         "collections_including",
         "url",
+        "pdf_link",
     ]

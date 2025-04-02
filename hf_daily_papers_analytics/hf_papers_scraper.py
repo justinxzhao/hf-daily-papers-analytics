@@ -44,19 +44,8 @@ async def extract_paper_links(date_url: str, date: str, session: ClientSession) 
                 ]
             )
         )
-        # daily_paper_links = list(
-        #     set(
-        #         [
-        #             f"https://huggingface.co{a['href']}".replace("#community", "")
-        #             for a in soup.find_all("a", href=True)
-        #             # Skip the links that have /date/ in the URL.
-        #             if "/date/" in a["href"]
-        #         ]
-        #     )
-        # )
         return {
             "papers": [{"date": date, "url": link} for link in paper_links],
-            # "daily_paper_links": daily_paper_links,
             "valid_dates": valid_dates,
         }
 
@@ -74,6 +63,7 @@ def convert_published_on_to_date(published_on: str) -> str:
 
 
 def get_paper_data(paper, soup):
+    """Returns a dictionary containing detailed information about a paper."""
     paper_id = paper["url"].split("/")[-1]
     title = soup.find("h1").text.strip() if soup.find("h1") else "N/A"
     authors = (
@@ -104,6 +94,19 @@ def get_paper_data(paper, soup):
     datasets_citing = int(citing_counts[1].text.replace(",", ""))
     spaces_citing = int(citing_counts[2].text.replace(",", ""))
     collections_including = int(citing_counts[3].text.replace(",", ""))
+
+    # Get the link to the PDF link.
+    pdf_links = []
+    non_pdf_links = []
+    for a_tag in soup.find_all("a", href=True):
+        link = a_tag["href"]
+        if "arxiv.org/pdf" in a_tag["href"]:
+            pdf_links.append(a_tag["href"])
+
+    if len(pdf_links) != 1:
+        print(f"Multiple PDF links found for {paper_id}: {pdf_links}")
+        raise ValueError("Multiple PDF links found")
+
     return {
         "date": paper["date"],
         "paper_id": paper_id,
@@ -118,6 +121,7 @@ def get_paper_data(paper, soup):
         "spaces_citing": spaces_citing,
         "collections_including": collections_including,
         "url": paper["url"],
+        "pdf_link": pdf_links[0],
     }
 
 
