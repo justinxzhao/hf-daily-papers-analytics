@@ -3,7 +3,6 @@ from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from hf_daily_papers_analytics.hf_papers_scraper import (
     extract_paper_links,
-    get_valid_daily_paper_dates,
     convert_published_on_to_date,
 )
 
@@ -48,26 +47,7 @@ async def test_extract_paper_links():
         }
         assert paper_urls == expected_paper_urls
 
-        assert set(result["daily_paper_links"]) == {
-            "https://huggingface.co/papers/date/2025-03-06",
-            "https://huggingface.co/papers/date/2025-03-04",
-        }
-
-
-def test_get_valid_daily_paper_dates():
-    valid_dates = get_valid_daily_paper_dates(
-        [
-            "https://huggingface.co/papers/date/2025-03-06",
-            "https://huggingface.co/papers/date/2025-03-04",
-        ]
-    )
-
-    assert set(valid_dates) == set(
-        [
-            "2025-03-06",
-            "2025-03-04",
-        ]
-    )
+        assert result["valid_dates"] == [date]
 
 
 def test_convert_published_on_to_date():
