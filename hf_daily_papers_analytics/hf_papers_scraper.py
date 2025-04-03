@@ -3,12 +3,25 @@ import asyncio
 import json
 import time
 from datetime import datetime, timedelta
+import os
+import tempfile
 
 import aiohttp
 import pandas as pd
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm_asyncio
+from pdf2image import convert_from_path
+from io import BytesIO
+import requests
+from google import genai
+from pydantic import BaseModel
+
+from dotenv import load_dotenv
+import traceback
+
+# Load environment variables from a .env file
+load_dotenv()
 
 
 # Function to generate URLs for the specified date range
@@ -44,9 +57,20 @@ async def extract_paper_links(date_url: str, date: str, session: ClientSession) 
                 ]
             )
         )
+
+        # Find all image tags
+        img_tags = soup.find_all("img")
+
+        # Extract image URLs
+        img_urls = [img.get("src") for img in img_tags if img.get("src")]
+        paper_img_urls = [
+            img_url for img_url in img_urls if "social-thumbnails/papers" in img_url
+        ]
+
         return {
             "papers": [{"date": date, "url": link} for link in paper_links],
             "valid_dates": valid_dates,
+            "paper_img_urls": paper_img_urls,
         }
 
 
@@ -60,6 +84,83 @@ def convert_published_on_to_date(published_on: str) -> str:
         # If parsing fails, assume the year is included in the string
         date_obj = datetime.strptime(published_on, "%b %d, %Y")
     return date_obj.strftime("%Y-%m-%d")
+
+
+def get_pdf_first_page_image(pdf_url: str) -> BytesIO:
+    """
+    Fetches the first page of a PDF from a given URL and returns the image data as a BytesIO object.
+    """
+    response = requests.get(pdf_url)
+    if response.status_code != 200:
+        raise ValueError(
+            f"Failed to fetch PDF from {pdf_url}, status code: {response.status_code}"
+        )
+
+    # Save the PDF content to a temporary BytesIO object
+    pdf_content = BytesIO(response.content)
+
+    # Convert the first page of the PDF to an image
+    # Save the BytesIO content to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
+        temp_pdf.write(pdf_content.getvalue())
+        temp_pdf_path = temp_pdf.name
+
+    # Convert the first page of the PDF to an image
+    images = convert_from_path(temp_pdf_path, first_page=1, last_page=1)
+
+    # Clean up the temporary file
+    os.remove(temp_pdf_path)
+    if not images:
+        raise ValueError("No pages found in the PDF.")
+
+    # Save the first page image to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_image:
+        images[0].save(temp_image, format="PNG")
+        temp_image_path = temp_image.name
+
+    return temp_image_path
+
+
+class AuthorInfo(BaseModel):
+    name: str
+    affiliation: str
+    email: str
+
+
+def extract_author_info_from_image(image_data: str) -> list[AuthorInfo]:
+    """
+    Calls the Gemini API with the provided image data to extract author information.
+
+    Args:
+        image_data (BytesIO): The image data containing author information.
+
+    Returns:
+        list[AuthorInfo]: A list of objects containing author name, affiliation, and email.
+    """
+    api_key = os.getenv("GEMINI_API_KEY", "xxx")  # Replace with your API key
+    client = genai.Client(api_key=api_key)
+
+    # Upload the image data to the Gemini API
+    file_upload = client.files.upload(file=image_data)
+
+    # Define the prompt for extracting author information
+    prompt = (
+        "Extract a JSON payload of an array of objects where each object has three keys: "
+        "the author name, the author affiliation, and the author email (if provided)."
+    )
+
+    # Call the Gemini API with structured output configuration
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=[prompt, file_upload],
+        config={
+            "response_mime_type": "application/json",
+            "response_schema": list[AuthorInfo],
+        },
+    )
+
+    # Parse and return the structured response
+    return response.parsed
 
 
 def get_paper_data(paper, soup):
@@ -107,6 +208,12 @@ def get_paper_data(paper, soup):
         print(f"Multiple PDF links found for {paper_id}: {pdf_links}")
         raise ValueError("Multiple PDF links found")
 
+    pdf_link = pdf_links[0]
+    first_pdf_page = get_pdf_first_page_image(pdf_link)
+    cv_extracted_author_info: list[dict] = [
+        author.dict() for author in extract_author_info_from_image(first_pdf_page)
+    ]
+
     return {
         "date": paper["date"],
         "paper_id": paper_id,
@@ -121,7 +228,8 @@ def get_paper_data(paper, soup):
         "spaces_citing": spaces_citing,
         "collections_including": collections_including,
         "url": paper["url"],
-        "pdf_link": pdf_links[0],
+        "pdf_link": pdf_link,
+        "cv_extracted_author_info": cv_extracted_author_info,
     }
 
 
@@ -143,6 +251,7 @@ async def extract_paper_details_with_metadata(
                 return paper_data
             except Exception as e:
                 print(f"Error processing {paper['url']}: {e}")
+                traceback.print_exc()
         attempt += 1
         await asyncio.sleep(cooldown)
 

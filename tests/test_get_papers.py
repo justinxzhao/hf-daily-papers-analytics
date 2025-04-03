@@ -49,6 +49,33 @@ async def test_extract_paper_links():
 
         assert result["valid_dates"] == [date]
 
+        assert result["paper_img_urls"] == [
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.00955.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.01935.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02682.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02879.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.00735.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02846.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.03651.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.00069.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02368.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.01328.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.00200.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02537.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02878.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02812.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02197.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.01342.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02357.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2502.14856.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02783.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.00876.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02876.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02304.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02152.png",
+            "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2503.02823.png",
+        ]
+
 
 def test_convert_published_on_to_date():
     convert_published_on_to_date("Mar 20") == "2025-03-20"
