@@ -85,4 +85,5 @@ def test_extract_paper_details_with_metadata():
         "collections_including",
         "url",
         "pdf_link",
+        "author_info",
     ]
