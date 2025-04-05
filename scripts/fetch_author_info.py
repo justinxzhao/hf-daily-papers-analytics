@@ -9,37 +9,49 @@ import pandas as pd
 from tqdm.asyncio import tqdm
 import random
 
+# Limit concurrent requests to 2
+semaphore = asyncio.Semaphore(2)
+
 
 async def fetch_author_info(paper_pdf_map: dict) -> dict:
     """Fetches author information asynchronously for a map of paper ID to PDF link."""
 
     async def process_pdf_link(paper_id, pdf_link, session, retries=3, cooldown=2):
-        for attempt in range(retries):
-            try:
-                # Download the first page of the PDF and parse authors
-                first_pdf_page = await get_pdf_first_page_image(pdf_link, session)
-                author_info = await extract_author_info_from_image(first_pdf_page)
+        async with semaphore:
+            for attempt in range(retries):
+                try:
+                    # Add a randomized delay to respect rate limits
+                    await asyncio.sleep(random.uniform(5, 10))
 
-                # Convert to dictionaries
-                return paper_id, [
-                    {
-                        "name": author.name,
-                        "affiliation": author.affiliation,
-                        "email": author.email,
-                    }
-                    for author in author_info
-                ]
-            except Exception as e:
-                print(
-                    f"Attempt {attempt + 1} failed for {pdf_link} (paper ID {paper_id}): {e}"
-                )
-                if attempt < retries - 1:
-                    await asyncio.sleep(cooldown)
-                else:
-                    print(f"All retries failed for {pdf_link} (paper ID {paper_id}).")
-                    return paper_id, []
+                    # Download the first page of the PDF and parse authors
+                    first_pdf_page = await get_pdf_first_page_image(pdf_link, session)
+                    author_info = await extract_author_info_from_image(first_pdf_page)
 
-    async with aiohttp.ClientSession() as session:
+                    # Convert to dictionaries
+                    return paper_id, [
+                        {
+                            "name": author.name,
+                            "affiliation": author.affiliation,
+                            "email": author.email,
+                        }
+                        for author in author_info
+                    ]
+                except Exception as e:
+                    print(
+                        f"Attempt {attempt + 1} failed for {pdf_link} (paper ID {paper_id}): {e}"
+                    )
+                    if attempt < retries - 1:
+                        await asyncio.sleep(cooldown)
+                    else:
+                        print(
+                            f"All retries failed for {pdf_link} (paper ID {paper_id})."
+                        )
+                        return paper_id, []
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; JustinsArxivBot/1.0; +https://yourdomain.com/contact)"
+    }
+    async with aiohttp.ClientSession(headers=headers) as session:
         tasks = [
             process_pdf_link(paper_id, pdf_link, session)
             for paper_id, pdf_link in paper_pdf_map.items()
@@ -77,9 +89,9 @@ def main():
         paper_pdf_map = dict(zip(df["paper_id"], df["pdf_link"]))
 
     # TEMP: Select a random set of 100 keys from the paper_pdf_map
-    paper_pdf_map = dict(
-        random.sample(list(paper_pdf_map.items()), min(10, len(paper_pdf_map)))
-    )
+    # paper_pdf_map = dict(
+    #     random.sample(list(paper_pdf_map.items()), min(3000, len(paper_pdf_map)))
+    # )
 
     # Print the number of papers to process and ask for confirmation
     num_papers = len(paper_pdf_map)

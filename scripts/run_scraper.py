@@ -25,6 +25,12 @@ python scripts/run_scraper.py \
     --start_date 2025-03-28 \
     --end_date 2025-03-28 \
     --output_file extractions/hf_papers_2025_03_28.jsonl
+
+
+python scripts/run_scraper.py \
+    --start_date 2024-01-01 \
+    --end_date 2024-12-31 \
+    --output_file extractions/hf_papers_2024.jsonl
 """
 
 import argparse
