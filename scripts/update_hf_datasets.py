@@ -55,7 +55,12 @@ async def main(args):
 
     print(f"Scraping papers from {start_date} to {end_date}...")
     new_df = await run_scraper(
-        start_date, end_date, output_file=None, retries=3, cooldown=2
+        start_date,
+        end_date,
+        output_file=None,
+        retries=3,
+        cooldown=2,
+        solicit_user_confirmation=args.solicit_user_confirmation,
     )
 
     if not args.full_scrape:
@@ -95,6 +100,12 @@ if __name__ == "__main__":
         "--upload",
         action="store_true",
         help="Upload to HF.",
+        default=False,
+    )
+    parser.add_argument(
+        "--solicit_user_confirmation",
+        action="store_true",
+        help="Solicit user confirmation before proceeding.",
         default=False,
     )
 

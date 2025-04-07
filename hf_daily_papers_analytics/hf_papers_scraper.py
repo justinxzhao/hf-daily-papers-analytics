@@ -290,6 +290,7 @@ async def run_scraper(
     retries: int = 3,
     cooldown: int = 5,
     max_requests_per_second: int = 100,
+    solicit_user_confirmation: bool = True,
 ) -> pd.DataFrame:
     urls = generate_date_urls(start_date, end_date)
     semaphore = asyncio.Semaphore(max_requests_per_second)
@@ -324,16 +325,17 @@ async def run_scraper(
         unique_papers = {paper["url"] for paper in all_paper_links}
 
         # Ask for user confirmation before proceeding
-        confirmation = (
-            input(
-                f"Found {len(unique_papers)} unique papers to scrape. Proceed? (yes/no): "
+        if solicit_user_confirmation:
+            confirmation = (
+                input(
+                    f"Found {len(unique_papers)} unique papers to scrape. Proceed? (yes/no): "
+                )
+                .strip()
+                .lower()
             )
-            .strip()
-            .lower()
-        )
-        if confirmation not in ["yes", "y"]:
-            print("Scraping aborted by user.")
-            return pd.DataFrame()  # Return an empty DataFrame
+            if confirmation not in ["yes", "y"]:
+                print("Scraping aborted by user.")
+                return pd.DataFrame()  # Return an empty DataFrame
 
         detail_tasks = [
             limited_extract_paper_details(paper) for paper in all_paper_links

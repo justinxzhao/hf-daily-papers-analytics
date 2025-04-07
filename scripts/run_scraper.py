@@ -58,6 +58,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cooldown", type=int, default=2, help="Cooldown time in seconds"
     )
+    parser.add_argument(
+        "--solicit_user_confirmation",
+        action="store_true",
+        help="Solicit user confirmation before proceeding",
+        default=False,
+    )
 
     args = parser.parse_args()
 
@@ -68,5 +74,6 @@ if __name__ == "__main__":
             args.output_file,
             retries=args.retries,
             cooldown=args.cooldown,
+            solicit_user_confirmation=args.solicit_user_confirmation,
         )
     )
