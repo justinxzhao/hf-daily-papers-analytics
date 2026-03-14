@@ -1,4 +1,4 @@
-"""Script to scrape daily papers from Hugging Face and update the dataset on Hugging Face Hub.
+"""Script to fetch daily papers from Hugging Face API and update the dataset on Hugging Face Hub.
 
 For a full scrape:
 python scripts/update_hf_datasets.py --full_scrape --upload
@@ -11,16 +11,11 @@ import argparse
 import asyncio
 import os
 import sys
-import time
 from datetime import datetime, timedelta
 
-import aiohttp
 import dotenv
 import pandas as pd
-from aiohttp import ClientSession
-from bs4 import BeautifulSoup
 from datasets import Dataset, DatasetDict, load_dataset
-from tqdm.asyncio import tqdm_asyncio
 
 from hf_daily_papers_analytics.hf_papers_scraper import run_scraper
 from hf_daily_papers_analytics.utils import merge_datasets
@@ -53,14 +48,13 @@ async def main(args):
         end_date = datetime.today().strftime("%Y-%m-%d")
         start_date = "2023-05-04"
 
-    print(f"Scraping papers from {start_date} to {end_date}...")
+    print(f"Fetching papers from {start_date} to {end_date}...")
     new_df = await run_scraper(
         start_date,
         end_date,
         output_file=None,
         retries=3,
         cooldown=2,
-        solicit_user_confirmation=args.solicit_user_confirmation,
     )
 
     if not args.full_scrape:
@@ -83,29 +77,23 @@ async def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scrape Hugging Face daily papers.")
+    parser = argparse.ArgumentParser(description="Fetch Hugging Face daily papers.")
     parser.add_argument(
         "--days",
         type=int,
         default=30,
-        help="Number of days from today to scrape papers for.",
+        help="Number of days from today to fetch papers for.",
     )
     parser.add_argument(
         "--full_scrape",
         action="store_true",
-        help="Scrape papers from the beginning of time.",
+        help="Fetch papers from the beginning of time.",
         default=False,
     )
     parser.add_argument(
         "--upload",
         action="store_true",
         help="Upload to HF.",
-        default=False,
-    )
-    parser.add_argument(
-        "--solicit_user_confirmation",
-        action="store_true",
-        help="Solicit user confirmation before proceeding.",
         default=False,
     )
 
