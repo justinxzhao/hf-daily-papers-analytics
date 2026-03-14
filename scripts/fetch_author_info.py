@@ -1,6 +1,6 @@
 from hf_daily_papers_analytics.hf_papers_scraper import (
-    get_pdf_first_page_image,
-    extract_author_info_from_image,
+    get_pdf_bytes,
+    extract_author_info_from_pdf,
 )
 import aiohttp
 import asyncio
@@ -23,9 +23,9 @@ async def fetch_author_info(paper_pdf_map: dict) -> dict:
                     # Add a randomized delay to respect rate limits
                     await asyncio.sleep(random.uniform(5, 10))
 
-                    # Download the first page of the PDF and parse authors
-                    first_pdf_page = await get_pdf_first_page_image(pdf_link, session)
-                    author_info = await extract_author_info_from_image(first_pdf_page)
+                    # Download the PDF and parse authors
+                    pdf_bytes = await get_pdf_bytes(pdf_link, session)
+                    author_info = await extract_author_info_from_pdf(pdf_bytes)
 
                     # Convert to dictionaries
                     return paper_id, [
