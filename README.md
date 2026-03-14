@@ -87,3 +87,43 @@ HF_Daily_Papers_Analytics/
 ## Support / Contact
 
 For issues and feature requests, please open a [GitHub Issue](https://github.com/justinxzhao/hf-daily-papers-analytics/issues).  
+
+
+# Visualizations:
+
+- average number of papers per day by (day, week, quarter, overall)
+- average number of upvotes per day by (day, week, quarter, overall)
+- average density of upvotes (# upvotes / # papers) per day by (day, week, quarter, overall)
+
+- cumulative number of unique authors over time (day, week, quarter, overall)
+- cumulative number of unique affiliations over time (day, week, quarter, overall)
+- cumulative number of collaborations (pairs of authors) over time (day, week, quarter, overall)
+- cumulative number of repeat collaborations (pairs of authors) over time (day, week, quarter, overall)
+
+- distribution of the number of papers that an author has (how many people have published a single paper and never published again?)
+- distribution of the amount of time between an author's paper to the next paper getting published
+- how often does an author's affiliation change? Distribution of the bumber of unique institutions that an author is represented in?
+
+- Who are the top authors (most # unique papers, # votes / # papers, # votes)
+- Who are the top affiliations (most # unique papers, # votes / # papers, # votes)
+- Who are the top first authors (most # unique papers, # votes / # papers, # votes)
+- Who are the top last authors (most # unique papers, # votes / # papers, # votes)
+
+- num of {papers, upvotes, upvote density} by Chinese authors over time {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by Chinese first authors {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by Chinese last authors {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by non-Chinese authors {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by non-Chinese first authors {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by non-Chinese last authors {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by papers with mixed Chinese and non-Chinese authors {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by Chinese affiliated institutions {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by non-Chinese affiliated institutions {day, week, quarter, year, overall}
+- num of {papers, upvotes, upvote density} by papers with mixed Chinese and non-Chinese affiliated institutions {day, week, quarter, year, overall}
+
+- Correlation between number of authors on a paper and number of upvotes?
+- Correlation between number of pages and the number of upvotes?
+- Correlation between number of unique institutions on a paper and number of upvotes?
+- Correlation between # words in title vs. number of upvotes?
+- Correlation between # words in abstract vs. number of upvotes?
+
+- Most number of unique authors from a single institution? (which institutions have the most number of unique authors?)
