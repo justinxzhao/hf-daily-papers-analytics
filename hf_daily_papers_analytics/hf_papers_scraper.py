@@ -48,7 +48,7 @@ async def extract_paper_links(date_url: str, date: str, session: ClientSession) 
                     f"https://huggingface.co{a['href']}".replace("#community", "")
                     for a in soup.find_all("a", href=True)
                     # Skip the links that have /date/ in the URL.
-                    if a["href"].startswith("/papers/") and "/date/" not in a["href"]
+                    if a["href"].startswith("/papers/") and "/date/" not in a["href"] and a["href"] != "/papers/trending"
                 ]
             )
         )
@@ -186,9 +186,9 @@ async def get_paper_data(paper, soup, session: ClientSession) -> dict:
     published_on = (
         published_on_div.text.strip().replace("Published on ", "")
         if published_on_div
-        else "N/A"
+        else None
     )
-    published_on = convert_published_on_to_date(published_on)
+    published_on = convert_published_on_to_date(published_on) if published_on else "N/A"
 
     upvotes_div = soup.find("div", class_="font-semibold text-orange-500")
     upvotes = upvotes_div.text if upvotes_div else "-"
@@ -229,11 +229,14 @@ async def get_paper_data(paper, soup, session: ClientSession) -> dict:
         unique_pdf_links_with_id = set(pdf_links_with_id)
         if len(unique_pdf_links_with_id) == 1:
             pdf_link = pdf_links_with_id[0]
+        elif len(unique_pdf_links_with_id) > 1:
+            # Multiple variants (e.g., versioned and unversioned); pick the shortest (unversioned).
+            pdf_link = min(unique_pdf_links_with_id, key=len)
         else:
             print(
-                f"Multiple or no matching PDF links found for {paper_id}: {pdf_links}"
+                f"No matching PDF links found for {paper_id}: {pdf_links}"
             )
-            raise ValueError("Expected exactly one PDF link containing the paper_id")
+            raise ValueError("No PDF link found containing the paper_id")
     else:
         pdf_link = pdf_links[0]
 
@@ -295,7 +298,12 @@ async def run_scraper(
     urls = generate_date_urls(start_date, end_date)
     semaphore = asyncio.Semaphore(max_requests_per_second)
 
-    async with aiohttp.ClientSession() as session:
+    headers = {}
+    hf_token = os.getenv("HUGGINGFACE_HUB_TOKEN")
+    if hf_token:
+        headers["Authorization"] = f"Bearer {hf_token}"
+
+    async with aiohttp.ClientSession(headers=headers) as session:
 
         async def limited_extract_paper_links(url, date):
             async with semaphore:
