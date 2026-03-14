@@ -1,10 +1,10 @@
 import argparse
 import asyncio
+import base64
 import json
 import time
 from datetime import datetime, timedelta
 import os
-import tempfile
 import traceback
 
 import aiohttp
@@ -12,11 +12,9 @@ import pandas as pd
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm_asyncio
-from pdf2image import convert_from_path
-from io import BytesIO
+from openai import OpenAI
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from google import genai
 
 load_dotenv()
 
@@ -87,82 +85,59 @@ class AuthorInfo(BaseModel):
     email: str
 
 
-async def async_convert_from_path(pdf_path: str, first_page: int, last_page: int):
-    """
-    Wraps pdf2image.convert_from_path in a run_in_executor call to avoid blocking.
-    """
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(
-        None,
-        lambda: convert_from_path(pdf_path, first_page=first_page, last_page=last_page),
-    )
-
-
-async def get_pdf_first_page_image(pdf_url: str, session: ClientSession) -> str:
-    """
-    Fetches the first page of a PDF from a given URL (asynchronously) and
-    returns the path to a temporary PNG image of that page.
-    """
+async def get_pdf_bytes(pdf_url: str, session: ClientSession) -> bytes:
+    """Fetches a PDF from a given URL and returns the raw bytes."""
     async with session.get(pdf_url) as response:
         if response.status != 200:
             raise ValueError(
                 f"Failed to fetch PDF from {pdf_url}, status code: {response.status}"
             )
-        pdf_data = await response.read()
-
-    # Write the PDF content to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
-        temp_pdf.write(pdf_data)
-        temp_pdf_path = temp_pdf.name
-
-    # Convert the first page of the PDF to an image (offloaded to a worker thread)
-    images = await async_convert_from_path(temp_pdf_path, first_page=1, last_page=1)
-
-    # Clean up the temporary PDF file
-    os.remove(temp_pdf_path)
-    if not images:
-        raise ValueError("No pages found in the PDF.")
-
-    # Save the first page image to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_image:
-        images[0].save(temp_image, format="PNG")
-        temp_image_path = temp_image.name
-
-    return temp_image_path
+        return await response.read()
 
 
-async def extract_author_info_from_image(image_path: str) -> list[AuthorInfo]:
+async def extract_author_info_from_pdf(pdf_bytes: bytes) -> list[AuthorInfo]:
     """
-    Calls the Gemini API (which is likely synchronous) with the provided image data
-    to extract author information. Uses run_in_executor to avoid blocking the event loop.
+    Sends PDF bytes to OpenAI GPT-5.4 to extract author information.
+    Uses run_in_executor to avoid blocking the event loop.
     """
     loop = asyncio.get_event_loop()
 
-    def _call_gemini_api():
-        api_key = os.getenv("GEMINI_API_KEY", "xxx")  # Replace with your API key
-        client = genai.Client(api_key=api_key)
+    def _call_openai_api():
+        client = OpenAI()
+        b64_pdf = base64.standard_b64encode(pdf_bytes).decode("utf-8")
 
-        file_upload = client.files.upload(file=image_path)
-
-        # Define the prompt for extracting author information
-        prompt = (
-            "Extract a JSON payload of an array of objects where each object has three keys: "
-            "the author name, the author affiliation, and the author email (if provided)."
+        response = client.chat.completions.create(
+            model="gpt-5.4",
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "Extract author information from the first page of this paper. "
+                                "Return a JSON object with a single key 'authors' containing an array of objects, "
+                                "each with keys: 'name' (string), 'affiliation' (string), and 'email' (string). "
+                                "If email is not provided, use an empty string."
+                            ),
+                        },
+                        {
+                            "type": "file",
+                            "file": {
+                                "filename": "paper.pdf",
+                                "file_data": f"data:application/pdf;base64,{b64_pdf}",
+                            },
+                        },
+                    ],
+                }
+            ],
         )
 
-        # Call the Gemini API with structured output configuration
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=[prompt, file_upload],
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": list[AuthorInfo],
-            },
-        )
-        return response.parsed
+        result = json.loads(response.choices[0].message.content)
+        return [AuthorInfo(**author) for author in result["authors"]]
 
-    # Because genai library calls are blocking, wrap them in a thread executor
-    return await loop.run_in_executor(None, _call_gemini_api)
+    return await loop.run_in_executor(None, _call_openai_api)
 
 
 async def get_paper_data(paper, soup, session: ClientSession) -> dict:
