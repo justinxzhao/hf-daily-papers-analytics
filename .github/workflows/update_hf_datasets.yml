@@ -29,4 +29,5 @@ jobs:
       - name: Run Update Script
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HUGGINGFACE_HUB_TOKEN }}
-        run: poetry run python scripts/update_hf_datasets.py --days 30 --upload
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: poetry run python scripts/update_hf_datasets.py --upload
