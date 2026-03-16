@@ -12,7 +12,6 @@ Usage:
 import argparse
 import asyncio
 import os
-import random
 
 import aiohttp
 import pandas as pd
@@ -27,8 +26,11 @@ from hf_daily_papers_analytics.hf_papers_scraper import (
 
 load_dotenv()
 
-# Limit concurrent requests to 2
-semaphore = asyncio.Semaphore(2)
+# arXiv's documented rate limit is 1 request per 3 seconds.
+# We use a semaphore of 1 (sequential PDF downloads) with a 3s delay to comply.
+# See: https://info.arxiv.org/help/api/tou.html
+ARXIV_DELAY_SECONDS = 3
+semaphore = asyncio.Semaphore(3)
 
 BATCH_SIZE = 10
 
@@ -40,7 +42,7 @@ async def fetch_author_info_for_paper(
     async with semaphore:
         for attempt in range(retries):
             try:
-                await asyncio.sleep(random.uniform(5, 10))
+                await asyncio.sleep(ARXIV_DELAY_SECONDS)
 
                 pdf_bytes = await get_pdf_bytes(pdf_link, session)
                 author_info = await extract_author_info_from_pdf(pdf_bytes)
@@ -133,14 +135,23 @@ async def run(paper_pdf_map, df, output_path=None, hf_dataset_name=None):
 
 
 def get_papers_needing_author_info(df):
-    """Returns a dict of paper_id -> pdf_link for papers missing author_info."""
-    if "author_info" not in df.columns:
-        return dict(zip(df["paper_id"], df["pdf_link"]))
+    """Returns a dict of paper_id -> pdf_link for papers missing author_info.
 
-    mask = df["author_info"].isna() | df["author_info"].apply(
-        lambda x: isinstance(x, list) and len(x) == 0
+    Uses export.arxiv.org (arXiv's recommended endpoint for programmatic access)
+    instead of arxiv.org to avoid rate limiting on the main site.
+    """
+    if "author_info" not in df.columns:
+        mask = pd.Series(True, index=df.index)
+    else:
+        mask = df["author_info"].isna() | df["author_info"].apply(
+            lambda x: isinstance(x, list) and len(x) == 0
+        )
+
+    # Use export.arxiv.org for programmatic access
+    pdf_links = df.loc[mask, "pdf_link"].str.replace(
+        "://arxiv.org/", "://export.arxiv.org/", regex=False
     )
-    return dict(zip(df.loc[mask, "paper_id"], df.loc[mask, "pdf_link"]))
+    return dict(zip(df.loc[mask, "paper_id"], pdf_links))
 
 
 def main():
