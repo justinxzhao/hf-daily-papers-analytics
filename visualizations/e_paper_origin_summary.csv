@@ -1,0 +1,9 @@
+classification,origin,num_papers,pct_papers
+By author name,chinese,3049,23.18
+By author name,non_chinese,3080,23.41
+By author name,mixed,6925,52.65
+By author name,unknown,100,0.76
+By affiliation,chinese,2143,16.29
+By affiliation,non_chinese,7848,59.66
+By affiliation,mixed,3063,23.29
+By affiliation,unknown,100,0.76
