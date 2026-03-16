@@ -140,25 +140,18 @@ async def fill_author_info(df, days):
     num_filled = 0
 
     async with aiohttp.ClientSession() as session:
-        for i in range(0, len(items), BATCH_SIZE):
-            batch = items[i : i + BATCH_SIZE]
-            batch_num = i // BATCH_SIZE + 1
-            total_batches = (len(items) + BATCH_SIZE - 1) // BATCH_SIZE
-            print(f"  Batch {batch_num}/{total_batches} ({len(batch)} papers)")
+        tasks = [
+            fetch_author_info_thumbnail(pid, url, session, semaphore)
+            for pid, url in items
+        ]
+        results = await tqdm.gather(*tasks, desc="  Extracting")
 
-            tasks = [
-                fetch_author_info_thumbnail(pid, url, session, semaphore)
-                for pid, url in batch
-            ]
-            results = await tqdm.gather(*tasks, desc="  Extracting")
-
-            # Apply results back to the main DataFrame
-            for paper_id, author_info in results:
-                if author_info:
-                    idxs = df.index[df["paper_id"] == paper_id]
-                    for idx in idxs:
-                        df.at[idx, "author_info"] = author_info
-                    num_filled += 1
+        for paper_id, author_info in results:
+            if author_info:
+                idxs = df.index[df["paper_id"] == paper_id]
+                for idx in idxs:
+                    df.at[idx, "author_info"] = author_info
+                num_filled += 1
 
     filled = df[df["date"] >= cutoff]["author_info"].apply(
         lambda x: isinstance(x, list) and len(x) > 0
@@ -235,13 +228,17 @@ async def main(args):
     print(f"  Missing author info:    {len(merged_df) - final_with_info}")
     print("=" * 60)
 
-    # Upload
+    # Save / Upload
+    if args.output:
+        print(f"\nSaving to {args.output}...")
+        merged_df.to_json(args.output, orient="records", lines=True)
+        print(f"Saved {len(merged_df)} papers to {args.output}")
     if args.upload:
         print("\nUploading to Hugging Face Hub...")
         upload_to_hf(merged_df, DATASET_NAME, hf_token)
         print("Dataset successfully updated!")
-    else:
-        print("\nDry run — not uploading. Use --upload to push to HF Hub.")
+    if not args.output and not args.upload:
+        print("\nDry run — not saving. Use --output or --upload.")
 
     return merged_df
 
@@ -265,6 +262,11 @@ if __name__ == "__main__":
         "--skip_author_info",
         action="store_true",
         help="Skip the author info extraction step.",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        help="Save merged dataset to a local JSONL file.",
     )
 
     args = parser.parse_args()
