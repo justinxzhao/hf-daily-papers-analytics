@@ -95,8 +95,17 @@ async def fetch_author_info_thumbnail(paper_id, thumbnail_url, session, semaphor
                     return paper_id, []
 
 
+def _count_with_author_info(df):
+    """Returns the number of rows that have non-empty author_info."""
+    if "author_info" not in df.columns:
+        return 0
+    return df["author_info"].apply(
+        lambda x: isinstance(x, list) and len(x) > 0
+    ).sum()
+
+
 async def fill_author_info(df, days):
-    """Fills author_info for recent papers that are missing it."""
+    """Fills author_info for recent papers that are missing it. Returns (df, num_filled)."""
     cutoff = (datetime.today() - timedelta(days=days)).strftime("%Y-%m-%d")
 
     # Find recent papers with missing author_info
@@ -112,7 +121,7 @@ async def fill_author_info(df, days):
 
     if to_process.empty:
         print("No papers need author info extraction.")
-        return df
+        return df, 0
 
     n_skipped = len(needs_info) - len(to_process)
     if n_skipped > 0:
@@ -122,6 +131,7 @@ async def fill_author_info(df, days):
 
     semaphore = asyncio.Semaphore(THUMBNAIL_CONCURRENCY)
     items = list(zip(to_process["paper_id"], to_process["thumbnail"]))
+    num_filled = 0
 
     async with aiohttp.ClientSession() as session:
         for i in range(0, len(items), BATCH_SIZE):
@@ -139,8 +149,10 @@ async def fill_author_info(df, days):
             # Apply results back to the main DataFrame
             for paper_id, author_info in results:
                 if author_info:
-                    mask = df["paper_id"] == paper_id
-                    df.loc[mask, "author_info"] = [author_info] * mask.sum()
+                    idxs = df.index[df["paper_id"] == paper_id]
+                    for idx in idxs:
+                        df.at[idx, "author_info"] = author_info
+                    num_filled += 1
 
     filled = df[df["date"] >= cutoff]["author_info"].apply(
         lambda x: isinstance(x, list) and len(x) > 0
@@ -148,7 +160,7 @@ async def fill_author_info(df, days):
     total_recent = len(df[df["date"] >= cutoff])
     print(f"Author info coverage for last {days} days: {filled}/{total_recent}")
 
-    return df
+    return df, num_filled
 
 
 async def main(args):
@@ -157,34 +169,73 @@ async def main(args):
     end_date = datetime.today().strftime("%Y-%m-%d")
     start_date = FIRST_DATE
 
+    print("=" * 60)
+    print("HF Daily Papers — Full Scrape + Author Info Pipeline")
+    print("=" * 60)
+
     # Step 1: Full scrape from HF API
-    print(f"Fetching all papers from {start_date} to {end_date}...")
+    print(f"\n[Step 1/4] Fetching all papers from {start_date} to {end_date}...")
     new_df = await run_scraper(start_date, end_date, output_file=None)
+    new_dates = sorted(new_df["date"].unique()) if not new_df.empty else []
+    print(f"  Scraped {len(new_df)} papers across {len(new_dates)} dates")
+    if new_dates:
+        print(f"  Date range: {new_dates[0]} to {new_dates[-1]}")
 
     # Step 2: Download existing dataset and merge (preserving author_info)
-    print("Downloading existing dataset from Hugging Face...")
+    print(f"\n[Step 2/4] Downloading existing dataset from Hugging Face...")
     try:
         existing_df = download_hf_dataset(DATASET_NAME)
-        print(f"  Existing dataset: {len(existing_df)} rows")
+        existing_size = len(existing_df)
+        existing_with_info = _count_with_author_info(existing_df)
+        print(f"  Existing dataset: {existing_size} papers, "
+              f"{existing_with_info} with author_info")
     except Exception as e:
         print(f"  Could not fetch existing dataset ({e}), using fresh scrape only.")
         existing_df = pd.DataFrame()
+        existing_size = 0
+        existing_with_info = 0
 
-    print("Merging datasets (preserving existing author_info)...")
+    print(f"\n[Step 3/4] Merging datasets (preserving existing author_info)...")
     merged_df = merge_datasets(existing_df, new_df)
-    print(f"  Merged dataset: {len(merged_df)} rows")
+    merged_with_info = _count_with_author_info(merged_df)
+    new_papers = len(merged_df) - existing_size
+    print(f"  Merged dataset: {len(merged_df)} papers "
+          f"({'+' if new_papers >= 0 else ''}{new_papers} net new)")
+    print(f"  Author info preserved: {merged_with_info}/{len(merged_df)} papers")
 
     # Step 3: Fill author_info for recent papers
+    num_newly_filled = 0
     if not args.skip_author_info:
-        merged_df = await fill_author_info(merged_df, args.author_info_days)
+        print(f"\n[Step 4/4] Filling author info for recent papers "
+              f"(last {args.author_info_days} days)...")
+        merged_df, num_newly_filled = await fill_author_info(
+            merged_df, args.author_info_days
+        )
+    else:
+        print(f"\n[Step 4/4] Skipping author info extraction (--skip_author_info)")
 
-    # Step 4: Upload
+    # Summary
+    final_with_info = _count_with_author_info(merged_df)
+    print("\n" + "=" * 60)
+    print("SUMMARY")
+    print("=" * 60)
+    print(f"  Existing dataset size:  {existing_size} papers")
+    print(f"  Fresh scrape size:      {len(new_df)} papers")
+    print(f"  Final dataset size:     {len(merged_df)} papers "
+          f"({'+' if new_papers >= 0 else ''}{new_papers} net new)")
+    print(f"  Author info before:     {existing_with_info}")
+    print(f"  Author info after:      {final_with_info} "
+          f"(+{num_newly_filled} newly extracted)")
+    print(f"  Missing author info:    {len(merged_df) - final_with_info}")
+    print("=" * 60)
+
+    # Upload
     if args.upload:
-        print("Uploading to Hugging Face Hub...")
+        print("\nUploading to Hugging Face Hub...")
         upload_to_hf(merged_df, DATASET_NAME, hf_token)
         print("Dataset successfully updated!")
     else:
-        print("Dry run — not uploading. Use --upload to push to HF Hub.")
+        print("\nDry run — not uploading. Use --upload to push to HF Hub.")
 
     return merged_df
 
