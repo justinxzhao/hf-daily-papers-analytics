@@ -1,0 +1,13 @@
+metric,count,pct_of_total
+Total unique authors,41078,100.0
+First authors,9174,22.33
+Last authors,5457,13.28
+Chinese-name authors,20614,50.18
+Non-Chinese-name authors,20464,49.82
+With Chinese affiliation,12464,30.34
+With non-Chinese affiliation,31885,77.62
+Solo authors (on a single-author paper),138,0.34
+Single-paper authors,24240,59.01
+Multi-paper authors,16838,40.99
+Single-affiliation authors,27556,67.08
+Multi-affiliation authors,12829,31.23
