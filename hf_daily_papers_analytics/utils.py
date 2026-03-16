@@ -20,12 +20,15 @@ def merge_datasets(existing_df: pd.DataFrame, new_df: pd.DataFrame) -> pd.DataFr
             lambda x: isinstance(x, list) and len(x) > 0
         )]
         info_lookup = dict(
-            zip(has_info["paper_id"], has_info["author_info"])
+            zip(has_info["paper_id"].astype(str), has_info["author_info"])
         )
     else:
         info_lookup = {}
 
     combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+    # Normalize columns to avoid mixed-type comparison failures
+    combined_df["date"] = combined_df["date"].astype(str).str[:10]
+    combined_df["paper_id"] = combined_df["paper_id"].astype(str)
     merged = (
         combined_df.drop_duplicates(subset=["date", "paper_id"], keep="last")
         .sort_values(by="date", ascending=False)
