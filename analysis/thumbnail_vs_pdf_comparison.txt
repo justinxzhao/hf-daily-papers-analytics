@@ -1,0 +1,223 @@
+================================================================================
+Paper 1/10: 2406.04333 — BitsFusion: 1.99 bits Weight Quantization of Diffusion Model...
+  Existing author_info: 10 authors
+  Downloading thumbnail...
+    Thumbnail size: 418,845 bytes
+  Extracting from thumbnail...
+    Got 10 authors in 4.5s
+  Downloading PDF (with 3s delay)...
+    PDF size: 14,417,434 bytes
+  Extracting from PDF first page...
+    Got 10 authors in 4.7s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Yang Sui           | Snap Inc.; Rutgers | Yang Sui           | Snap Inc.; Rutgers | Yang Sui           | Snap Inc.; Rutgers
+  Yanyu Li           | Snap Inc.          | Yanyu Li           | Snap Inc.          | Yanyu Li           | Snap Inc.
+  Anil Kag           | Snap Inc.          | Anil Kag           | Snap Inc.          | Anil Kag           | Snap Inc.
+  Yerlan Idelbayev   | Snap Inc.          | Yerlan Idelbayev   | Snap Inc.          | Yerlan Idelbayev   | Snap Inc.
+  Junli Cao          | Snap Inc.          | Junli Cao          | Snap Inc.          | Junli Cao          | Snap Inc.
+  Ju Hu              | Snap Inc.          | Ju Hu              | Snap Inc.          | Ju Hu              | Snap Inc.
+  Dhritiman Sagar    | Snap Inc.          | Dhritiman Sagar    | Snap Inc.          | Dhritiman Sagar    | Snap Inc.
+  Bo Yuan            | Snap Inc.          | Bo Yuan            | Rutgers University | Bo Yuan            | Rutgers University
+  Sergey Tulyakov    | Snap Inc.          | Sergey Tulyakov    | Snap Inc.          | Sergey Tulyakov    | Snap Inc.
+  Jian Ren           | Snap Inc.          | Jian Ren           | Snap Inc.          | Jian Ren           | Snap Inc.
+
+================================================================================
+Paper 2/10: 2510.1498 — Agentic Design of Compositional Machines...
+  Existing author_info: 3 authors
+  Downloading thumbnail...
+    Thumbnail size: 425,232 bytes
+  Extracting from thumbnail...
+    Got 3 authors in 2.2s
+  Downloading PDF (with 3s delay)...
+    PDF size: 27,001,403 bytes
+  Extracting from PDF first page...
+    Got 3 authors in 4.6s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Wenqian Zhang      | The Chinese Univer | Wenqian Zhang      | The Chinese Univer | Wenqian Zhang      | The Chinese Univer
+  Weiyang Liu        | The Chinese Univer | Weiyang Liu        | The Chinese Univer | Weiyang Liu        | The Chinese Univer
+  Zhen Liu           | The Chinese Univer | Zhen Liu           | The Chinese Univer | Zhen Liu           | The Chinese Univer
+
+================================================================================
+Paper 3/10: 2601.02439 — WebGym: Scaling Training Environments for Visual Web Agents ...
+  Existing author_info: 5 authors
+  Downloading thumbnail...
+    Thumbnail size: 319,063 bytes
+  Extracting from thumbnail...
+    Got 5 authors in 2.0s
+  Downloading PDF (with 3s delay)...
+    PDF size: 7,334,439 bytes
+  Extracting from PDF first page...
+    Got 5 authors in 5.2s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Hao Bai            | Microsoft; UIUC    | Hao Bai            | Microsoft; UIUC    | Hao Bai            | Microsoft; UIUC
+  Alexey Taymanov    | Microsoft          | Alexey Taymanov    | Microsoft          | Alexey Taymanov    | Microsoft
+  Tong Zhang         | UIUC               | Tong Zhang         | UIUC               | Tong Zhang         | UIUC
+  Aviral Kumar       | CMU                | Aviral Kumar       | CMU                | Aviral Kumar       | CMU
+  Spencer Whitehead  | Microsoft          | Spencer Whitehead  | Microsoft          | Spencer Whitehead  | Microsoft
+
+================================================================================
+Paper 4/10: 2406.18125 — ResumeAtlas: Revisiting Resume Classification with Large-Sca...
+  Existing author_info: 5 authors
+  Downloading thumbnail...
+    Thumbnail size: 282,053 bytes
+  Extracting from thumbnail...
+    Got 5 authors in 3.5s
+  Downloading PDF (with 3s delay)...
+    PDF size: 622,384 bytes
+  Extracting from PDF first page...
+    Got 5 authors in 3.4s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Ahmed Heakl        | Egypt-Japan Univer | Ahmed Heakl        | Egypt-Japan Univer | Ahmed Heakl        | Egypt-Japan Univer
+  Youssef Mohamed    | Egypt-Japan Univer | Youssef Mohamed    | Egypt-Japan Univer | Youssef Mohamed    | Egypt-Japan Univer
+  Noran Mohamed      | Egypt-Japan Univer | Noran Mohamed      | Egypt-Japan Univer | Noran Mohamed      | Egypt-Japan Univer
+  Aly Elsharkawy     | Egypt-Japan Univer | Aly Elsharkawy     | Egypt-Japan Univer | Aly Elsharkawy     | Egypt-Japan Univer
+  Ahmed Zaky         | Egypt-Japan Univer | Ahmed Zaky         | Egypt-Japan Univer | Ahmed Zaky         | Egypt-Japan Univer
+
+================================================================================
+Paper 5/10: 2405.12213 — Octo: An Open-Source Generalist Robot Policy...
+  Existing author_info: 19 authors
+  Downloading thumbnail...
+    Thumbnail size: 292,830 bytes
+  Extracting from thumbnail...
+    Got 19 authors in 4.5s
+  Downloading PDF (with 3s delay)...
+    PDF size: 3,675,649 bytes
+  Extracting from PDF first page...
+    Got 19 authors in 6.3s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Dibya Ghosh        | UC Berkeley        | Dibya Ghosh        | UC Berkeley        | Dibya Ghosh        | UC Berkeley
+  Homer Walke        | UC Berkeley        | Homer Walke        | UC Berkeley        | Homer Walke        | UC Berkeley
+  Karl Pertsch       | UC Berkeley; Stanf | Karl Pertsch       | UC Berkeley; Stanf | Karl Pertsch       | UC Berkeley; Stanf
+  Kevin Black        | UC Berkeley        | Kevin Black        | UC Berkeley        | Kevin Black        | UC Berkeley
+  Oier Mees          | UC Berkeley        | Oier Mees          | UC Berkeley        | Oier Mees          | UC Berkeley
+  Sudeep Dasari      | Carnegie Mellon Un | Sudeep Dasari      | Carnegie Mellon Un | Sudeep Dasari      | Carnegie Mellon Un
+  Joey Hejna         | Stanford           | Joey Hejna         | Stanford           | Joey Hejna         | Stanford
+  Tobias Kreiman     | UC Berkeley        | Tobias Kreiman     | UC Berkeley        | Tobias Kreiman     | UC Berkeley
+  Ria Doshi          | UC Berkeley        | Ria Doshi          | UC Berkeley        | Ria Doshi          | UC Berkeley
+  Charles Xu         | UC Berkeley        | Charles Xu         | UC Berkeley        | Charles Xu         | UC Berkeley
+  Jianlan Luo        | UC Berkeley        | Jianlan Luo        | UC Berkeley        | Jianlan Luo        | UC Berkeley
+  You Liang Tan      | UC Berkeley        | You Liang Tan      | UC Berkeley        | You Liang Tan      | UC Berkeley
+  Lawrence Yunliang  | UC Berkeley        | Lawrence Yunliang  | UC Berkeley        | Lawrence Yunliang  | UC Berkeley
+  Pannag Sanketi     | Google Deepmind    | Pannag Sanketi     | Google Deepmind    | Pannag Sanketi     | Google Deepmind
+  Quan Vuong         | Google Deepmind    | Quan Vuong         | Google Deepmind    | Quan Vuong         | Google Deepmind
+  Ted Xiao           | Google Deepmind    | Ted Xiao           | Google Deepmind    | Ted Xiao           | Google Deepmind
+  Dorsa Sadigh       | Stanford           | Dorsa Sadigh       | Stanford           | Dorsa Sadigh       | Stanford
+  Chelsea Finn       | Stanford           | Chelsea Finn       | Stanford           | Chelsea Finn       | Stanford
+  Sergey Levine      | UC Berkeley        | Sergey Levine      | UC Berkeley        | Sergey Levine      | UC Berkeley
+
+================================================================================
+Paper 6/10: 2602.16682 — Learning Situated Awareness in the Real World...
+  Existing author_info: 8 authors
+  Downloading thumbnail...
+    Thumbnail size: 453,744 bytes
+  Extracting from thumbnail...
+    Got 8 authors in 4.6s
+  Downloading PDF (with 3s delay)...
+    PDF size: 21,943,995 bytes
+  Extracting from PDF first page...
+    Got 8 authors in 4.5s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Chuhan Li          | University of Cali | Chuhan Li          | University of Cali | Chuhan Li          | University of Cali
+  Ruilin Han         | Yale University    | Ruilin Han         | Yale University    | Ruilin Han         | Yale University
+  Joy Hsu            | Stanford Universit | Joy Hsu            | Stanford Universit | Joy Hsu            | Stanford Universit
+  Yongyuan Liang     | University of Mary | Yongyuan Liang     | University of Mary | Yongyuan Liang     | University of Mary
+  Rajiv Dhawan       | Amazon             | Rajiv Dhawan       | Amazon             | Rajiv Dhawan       | Amazon
+  Jiajun Wu          | Stanford Universit | Jiajun Wu          | Stanford Universit | Jiajun Wu          | Stanford Universit
+  Ming-Hsuan Yang    | University of Cali | Ming-Hsuan Yang    | University of Cali | Ming-Hsuan Yang    | University of Cali
+  Xin Eric Wang      | University of Cali | Xin Eric Wang      | University of Cali | Xin Eric Wang      | University of Cali
+
+================================================================================
+Paper 7/10: 2410.13852 — Retrospective Learning from Interactions...
+  Existing author_info: 6 authors
+  Downloading thumbnail...
+    Thumbnail size: 303,692 bytes
+  Extracting from thumbnail...
+    Got 6 authors in 3.2s
+  Downloading PDF (with 3s delay)...
+    PDF size: 2,414,030 bytes
+  Extracting from PDF first page...
+    Got 6 authors in 2.8s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Zizhao Chen        | Department of Comp | Zizhao Chen        | Department of Comp | Zizhao Chen        | Department of Comp
+  Mustafa Omer Gul   | Department of Comp | Mustafa Omer Gul   | Department of Comp | Mustafa Omer Gul   | Department of Comp
+  Yiwei Chen         | Department of Comp | Yiwei Chen         | Department of Comp | Yiwei Chen         | Department of Comp
+  Gloria Geng        | Department of Comp | Gloria Geng        | Department of Comp | Gloria Geng        | Department of Comp
+  Anne Wu            | Department of Comp | Anne Wu            | Department of Comp | Anne Wu            | Department of Comp
+  Yoav Artzi         | Department of Comp | Yoav Artzi         | Department of Comp | Yoav Artzi         | Department of Comp
+
+================================================================================
+Paper 8/10: 2503.07103 — Quantizing Large Language Models for Code Generation: A Diff...
+  Existing author_info: 5 authors
+  Downloading thumbnail...
+    Thumbnail size: 381,891 bytes
+  Extracting from thumbnail...
+    Got 5 authors in 2.9s
+  Downloading PDF (with 3s delay)...
+    PDF size: 690,922 bytes
+  Extracting from PDF first page...
+    Got 5 authors in 3.5s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Alessandro Giagnor | Università della S | Alessandro Giagnor | Università della S | Alessandro Giagnor | Università della S
+  Antonio Mastropaol | William & Mary, Un | Antonio Mastropaol | William & Mary, Un | Antonio Mastropaol | William & Mary, Un
+  Saima Afrin        | William & Mary, Un | Saima Afrin        | William & Mary, Un | Saima Afrin        | William & Mary, Un
+  Massimiliano Di Pe | University of Sann | Massimiliano Di Pe | University of Sann | Massimiliano Di Pe | University of Sann
+  Gabriele Bavota    | Università della S | Gabriele Bavota    | Università della S | Gabriele Bavota    | Università della S
+
+================================================================================
+Paper 9/10: 2504.06949 — Adaptive Computation Pruning for the Forgetting Transformer...
+  Existing author_info: 4 authors
+  Downloading thumbnail...
+    Thumbnail size: 242,354 bytes
+  Extracting from thumbnail...
+    Got 4 authors in 3.2s
+  Downloading PDF (with 3s delay)...
+    PDF size: 1,255,284 bytes
+  Extracting from PDF first page...
+    Got 4 authors in 2.8s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Zhixuan Lin        | Mila - Quebec AI I | Zhixuan Lin        | Mila - Quebec AI I | Zhixuan Lin        | Mila - Quebec AI I
+  Johan Obando-Ceron | Mila - Quebec AI I | Johan Obando-Ceron | Mila - Quebec AI I | Johan Obando-Ceron | Mila - Quebec AI I
+  Xu Owen He         | MakerMaker AI      | Xu Owen He         | MakerMaker AI      | Xu Owen He         | MakerMaker AI
+  Aaron Courville    | Mila - Quebec AI I | Aaron Courville    | Mila - Quebec AI I | Aaron Courville    | Mila - Quebec AI I
+
+================================================================================
+Paper 10/10: 2602.14111 — Sanity Checks for Sparse Autoencoders: Do SAEs Beat Random B...
+  Existing author_info: 6 authors
+  Downloading thumbnail...
+    Thumbnail size: 384,907 bytes
+  Extracting from thumbnail...
+    Got 6 authors in 2.2s
+  Downloading PDF (with 3s delay)...
+    PDF size: 5,138,085 bytes
+  Extracting from PDF first page...
+    Got 6 authors in 3.5s
+
+  THUMBNAIL                                | PDF                                      | EXISTING
+  ---------------------------------------- | ---------------------------------------- | ----------------------------------------
+  Anton Korznikov    |                    | Anton Korznikov    |                    | Anton Korznikov    |
+  Andrey Galichin    |                    | Andrey Galichin    |                    | Andrey Galichin    |
+  Alexey Dontsov     |                    | Alexey Dontsov     |                    | Alexey Dontsov     |
+  Oleg Y. Rogov      |                    | Oleg Y. Rogov      |                    | Oleg Y. Rogov      |
+  Ivan Oseledets     |                    | Ivan Oseledets     |                    | Ivan Oseledets     |
+  Elena Tutubalina   |                    | Elena Tutubalina   |                    | Elena Tutubalina   |
+
+================================================================================
+Done!

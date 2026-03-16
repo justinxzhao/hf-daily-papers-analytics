@@ -35,9 +35,17 @@ async def get_pdf_bytes(pdf_url: str, session: ClientSession) -> bytes:
         return await response.read()
 
 
+_AUTHOR_EXTRACTION_PROMPT = (
+    "Extract author information from this paper. "
+    "Return a JSON object with a single key 'authors' containing an array of objects, "
+    "each with keys: 'name' (string), 'affiliation' (string), and 'email' (string). "
+    "If email is not provided, use an empty string."
+)
+
+
 async def extract_author_info_from_pdf(pdf_bytes: bytes) -> list[AuthorInfo]:
     """
-    Sends PDF bytes to OpenAI GPT-5.4 to extract author information.
+    Sends PDF first page to OpenAI GPT-5.4 to extract author information.
     Uses run_in_executor to avoid blocking the event loop.
     """
     loop = asyncio.get_event_loop()
@@ -62,21 +70,48 @@ async def extract_author_info_from_pdf(pdf_bytes: bytes) -> list[AuthorInfo]:
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": (
-                                "Extract author information from the first page of this paper. "
-                                "Return a JSON object with a single key 'authors' containing an array of objects, "
-                                "each with keys: 'name' (string), 'affiliation' (string), and 'email' (string). "
-                                "If email is not provided, use an empty string."
-                            ),
-                        },
+                        {"type": "text", "text": _AUTHOR_EXTRACTION_PROMPT},
                         {
                             "type": "file",
                             "file": {
                                 "filename": "paper.pdf",
                                 "file_data": f"data:application/pdf;base64,{b64_pdf}",
                             },
+                        },
+                    ],
+                }
+            ],
+        )
+
+        result = json.loads(response.choices[0].message.content)
+        return [AuthorInfo(**author) for author in result["authors"]]
+
+    return await loop.run_in_executor(None, _call_openai_api)
+
+
+async def extract_author_info_from_thumbnail(image_bytes: bytes) -> list[AuthorInfo]:
+    """
+    Sends a thumbnail image to OpenAI GPT-5.4 to extract author information.
+    Much faster than PDF extraction since thumbnails are served from HF CDN
+    with no rate limits.
+    """
+    loop = asyncio.get_event_loop()
+
+    def _call_openai_api():
+        client = OpenAI()
+        b64_img = base64.standard_b64encode(image_bytes).decode("utf-8")
+
+        response = client.chat.completions.create(
+            model="gpt-5.4",
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": _AUTHOR_EXTRACTION_PROMPT},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{b64_img}"},
                         },
                     ],
                 }
