@@ -50,7 +50,10 @@ BACKOFF_FACTOR = 2.0
 def _is_retryable_error(e: Exception) -> bool:
     """Check if an error is retryable (rate limit, server error, timeout)."""
     msg = str(e).lower()
-    return any(s in msg for s in ["rate", "429", "500", "502", "503", "504", "timeout", "gateway"])
+    return any(
+        s in msg
+        for s in ["rate", "429", "500", "502", "503", "504", "timeout", "gateway"]
+    )
 
 
 async def fetch_author_info_thumbnail(paper_id, thumbnail_url, session, semaphore):
@@ -129,21 +132,20 @@ async def fetch_author_info_pdf(paper_id, pdf_link, session, semaphore):
                     return paper_id, []
 
 
-def update_df_with_author_info(df, author_info_map, cumulative_map):
-    """Merges new results into cumulative_map, then rebuilds the author_info column.
+def update_df_with_author_info(df, author_info_map):
+    """Applies newly extracted author_info to the DataFrame without touching existing values.
 
-    Uses .map() on paper_id to assign lists cleanly, avoiding pandas cell-mutation
-    issues with list values. Returns number of new papers updated in this batch.
+    Returns number of papers updated.
     """
     new_updates = 0
     for paper_id, author_info in author_info_map.items():
-        if not author_info or paper_id in cumulative_map:
+        if not author_info:
             continue
-        cumulative_map[paper_id] = author_info
-        new_updates += 1
-
-    # Rebuild the column: use the cumulative map, falling back to existing values
-    df["author_info"] = df["paper_id"].map(cumulative_map)
+        idxs = df.index[df["paper_id"] == paper_id]
+        for idx in idxs:
+            df.at[idx, "author_info"] = author_info
+        if len(idxs) > 0:
+            new_updates += 1
     return new_updates
 
 
@@ -185,7 +187,6 @@ async def run(paper_url_map, df, source, output_path=None, hf_dataset_name=None)
     """
     items = list(paper_url_map.items())
     total_updated = 0
-    cumulative_map = {}  # paper_id -> author_info, accumulated across batches
 
     concurrency = THUMBNAIL_CONCURRENCY if source == "thumbnail" else PDF_CONCURRENCY
     semaphore = asyncio.Semaphore(concurrency)
@@ -196,9 +197,7 @@ async def run(paper_url_map, df, source, output_path=None, hf_dataset_name=None)
             # Process all at once — no need to batch since thumbnails are fast
             print(f"\nProcessing {len(items)} papers (thumbnail mode)...")
             author_info_map = await process_batch(items, session, source, semaphore)
-            total_updated = update_df_with_author_info(
-                df, author_info_map, cumulative_map
-            )
+            total_updated = update_df_with_author_info(df, author_info_map)
             save_checkpoint(
                 df, output_path=output_path, hf_dataset_name=hf_dataset_name
             )
@@ -214,9 +213,7 @@ async def run(paper_url_map, df, source, output_path=None, hf_dataset_name=None)
                 )
 
                 author_info_map = await process_batch(batch, session, source, semaphore)
-                updated = update_df_with_author_info(
-                    df, author_info_map, cumulative_map
-                )
+                updated = update_df_with_author_info(df, author_info_map)
                 total_updated += updated
                 print(
                     f"Updated {updated} papers in this batch "
