@@ -41,9 +41,15 @@ FIRST_DATE = "2023-05-04"
 THUMBNAIL_CONCURRENCY = 20
 BATCH_SIZE = 10
 MAX_RETRIES = 5
-INITIAL_BACKOFF = 1.0
-MAX_BACKOFF = 60.0
+INITIAL_BACKOFF = 2.0
+MAX_BACKOFF = 120.0
 BACKOFF_FACTOR = 2.0
+
+
+def _is_retryable_error(e: Exception) -> bool:
+    """Check if an error is retryable (rate limit, server error, timeout)."""
+    msg = str(e).lower()
+    return any(s in msg for s in ["rate", "429", "500", "502", "503", "504", "timeout", "gateway"])
 
 
 def download_hf_dataset(dataset_name):
@@ -80,14 +86,14 @@ async def fetch_author_info_thumbnail(paper_id, thumbnail_url, session, semaphor
                     for a in author_info
                 ]
             except Exception as e:
-                is_rate_limit = "rate" in str(e).lower() or "429" in str(e)
+                retryable = _is_retryable_error(e)
                 print(
                     f"  Attempt {attempt + 1}/{MAX_RETRIES} failed for {paper_id}: {e}"
                 )
                 if attempt < MAX_RETRIES - 1:
                     wait = min(backoff, MAX_BACKOFF)
-                    if is_rate_limit:
-                        print(f"    Rate limited — backing off {wait:.1f}s")
+                    if retryable:
+                        print(f"    Retryable error — backing off {wait:.1f}s")
                     await asyncio.sleep(wait)
                     backoff *= BACKOFF_FACTOR
                 else:
