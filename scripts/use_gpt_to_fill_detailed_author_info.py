@@ -3,13 +3,13 @@ thumbnail (default) or PDF first page to GPT-5.4 for extraction.
 
 Usage:
     # Thumbnail mode (default — faster, no arxiv rate limits):
-    python scripts/use_gpt_to_fill_detailed_author_info.py --input data/hf_daily_papers.jsonl
+    poetry run python scripts/use_gpt_to_fill_detailed_author_info.py --input data/hf_daily_papers.jsonl
 
     # PDF mode (higher quality, slower due to arxiv rate limits):
-    python scripts/use_gpt_to_fill_detailed_author_info.py --input data/hf_daily_papers.jsonl --source pdf
+    poetry run python scripts/use_gpt_to_fill_detailed_author_info.py --input data/hf_daily_papers.jsonl --source pdf
 
     # From the HuggingFace dataset (pushes to hub after each batch):
-    python scripts/use_gpt_to_fill_detailed_author_info.py --hf_dataset justinxzhao/hf_daily_papers
+    poetry run python scripts/use_gpt_to_fill_detailed_author_info.py --hf_dataset justinxzhao/hf_daily_papers
 """
 
 import argparse
@@ -37,14 +37,20 @@ ARXIV_DELAY_SECONDS = 3
 BATCH_SIZE = 10
 
 # Concurrency limits by source type
-PDF_CONCURRENCY = 3       # Limited by arxiv rate limits
+PDF_CONCURRENCY = 3  # Limited by arxiv rate limits
 THUMBNAIL_CONCURRENCY = 20  # Only limited by OpenAI rate limits
 
-# Exponential backoff settings for OpenAI API rate limits
+# Exponential backoff settings for retryable errors (rate limits, 5xx, timeouts)
 MAX_RETRIES = 5
-INITIAL_BACKOFF = 1.0  # seconds
-MAX_BACKOFF = 60.0     # seconds
+INITIAL_BACKOFF = 2.0  # seconds
+MAX_BACKOFF = 120.0  # seconds
 BACKOFF_FACTOR = 2.0
+
+
+def _is_retryable_error(e: Exception) -> bool:
+    """Check if an error is retryable (rate limit, server error, timeout)."""
+    msg = str(e).lower()
+    return any(s in msg for s in ["rate", "429", "500", "502", "503", "504", "timeout", "gateway"])
 
 
 async def fetch_author_info_thumbnail(paper_id, thumbnail_url, session, semaphore):
@@ -71,15 +77,15 @@ async def fetch_author_info_thumbnail(paper_id, thumbnail_url, session, semaphor
                     for author in author_info
                 ]
             except Exception as e:
-                is_rate_limit = "rate" in str(e).lower() or "429" in str(e)
+                retryable = _is_retryable_error(e)
                 print(
                     f"Attempt {attempt + 1}/{MAX_RETRIES} failed for {paper_id} "
                     f"(thumbnail): {e}"
                 )
                 if attempt < MAX_RETRIES - 1:
                     wait = min(backoff, MAX_BACKOFF)
-                    if is_rate_limit:
-                        print(f"  Rate limited — backing off {wait:.1f}s")
+                    if retryable:
+                        print(f"  Retryable error — backing off {wait:.1f}s")
                     await asyncio.sleep(wait)
                     backoff *= BACKOFF_FACTOR
                 else:
@@ -107,15 +113,15 @@ async def fetch_author_info_pdf(paper_id, pdf_link, session, semaphore):
                     for author in author_info
                 ]
             except Exception as e:
-                is_rate_limit = "rate" in str(e).lower() or "429" in str(e)
+                retryable = _is_retryable_error(e)
                 print(
                     f"Attempt {attempt + 1}/{MAX_RETRIES} failed for {paper_id} "
                     f"(pdf): {e}"
                 )
                 if attempt < MAX_RETRIES - 1:
                     wait = min(backoff, MAX_BACKOFF)
-                    if is_rate_limit:
-                        print(f"  Rate limited — backing off {wait:.1f}s")
+                    if retryable:
+                        print(f"  Retryable error — backing off {wait:.1f}s")
                     await asyncio.sleep(wait)
                     backoff *= BACKOFF_FACTOR
                 else:
@@ -172,7 +178,11 @@ async def process_batch(batch_items, session, source, semaphore):
 
 
 async def run(paper_url_map, df, source, output_path=None, hf_dataset_name=None):
-    """Processes papers in batches, saving after each batch."""
+    """Processes papers, saving checkpoints after each batch.
+
+    Thumbnail mode processes all papers at once (concurrency managed by semaphore).
+    PDF mode uses batches of BATCH_SIZE to checkpoint between arxiv rate-limited fetches.
+    """
     items = list(paper_url_map.items())
     total_updated = 0
     cumulative_map = {}  # paper_id -> author_info, accumulated across batches
@@ -182,20 +192,40 @@ async def run(paper_url_map, df, source, output_path=None, hf_dataset_name=None)
 
     headers = {"User-Agent": "Mozilla/5.0 (compatible; JustinsArxivBot/1.0)"}
     async with aiohttp.ClientSession(headers=headers) as session:
-        for i in range(0, len(items), BATCH_SIZE):
-            batch = items[i : i + BATCH_SIZE]
-            batch_num = i // BATCH_SIZE + 1
-            total_batches = (len(items) + BATCH_SIZE - 1) // BATCH_SIZE
-            print(f"\n--- Batch {batch_num}/{total_batches} ({len(batch)} papers) ---")
-
-            author_info_map = await process_batch(batch, session, source, semaphore)
-            updated = update_df_with_author_info(df, author_info_map, cumulative_map)
-            total_updated += updated
-            print(f"Updated {updated} papers in this batch ({total_updated} total).")
-
+        if source == "thumbnail":
+            # Process all at once — no need to batch since thumbnails are fast
+            print(f"\nProcessing {len(items)} papers (thumbnail mode)...")
+            author_info_map = await process_batch(items, session, source, semaphore)
+            total_updated = update_df_with_author_info(
+                df, author_info_map, cumulative_map
+            )
             save_checkpoint(
                 df, output_path=output_path, hf_dataset_name=hf_dataset_name
             )
+        else:
+            # Batch for PDF mode — checkpoint between slow arxiv fetches
+            for i in range(0, len(items), BATCH_SIZE):
+                batch = items[i : i + BATCH_SIZE]
+                batch_num = i // BATCH_SIZE + 1
+                total_batches = (len(items) + BATCH_SIZE - 1) // BATCH_SIZE
+                print(
+                    f"\n--- Batch {batch_num}/{total_batches} "
+                    f"({len(batch)} papers) ---"
+                )
+
+                author_info_map = await process_batch(batch, session, source, semaphore)
+                updated = update_df_with_author_info(
+                    df, author_info_map, cumulative_map
+                )
+                total_updated += updated
+                print(
+                    f"Updated {updated} papers in this batch "
+                    f"({total_updated} total)."
+                )
+
+                save_checkpoint(
+                    df, output_path=output_path, hf_dataset_name=hf_dataset_name
+                )
 
     print(f"\nDone. Updated {total_updated} papers total.")
 
@@ -281,11 +311,11 @@ def main():
     num_papers = len(paper_url_map)
     print(f"Source: {args.source}")
     print(f"Number of papers to process: {num_papers}")
-    print(f"Will save every {BATCH_SIZE} papers.")
     if args.source == "thumbnail":
-        print(f"Concurrency: {THUMBNAIL_CONCURRENCY} (thumbnail mode)")
+        print(f"Concurrency: {THUMBNAIL_CONCURRENCY} (thumbnail mode, all at once)")
     else:
         print(f"Concurrency: {PDF_CONCURRENCY} (PDF mode, arxiv rate limited)")
+        print(f"Will checkpoint every {BATCH_SIZE} papers.")
 
     if num_papers == 0:
         print("No papers left to process. Exiting.")
